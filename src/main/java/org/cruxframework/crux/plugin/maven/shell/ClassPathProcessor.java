@@ -28,5 +28,5 @@ import java.util.List;
  */
 public interface ClassPathProcessor
 {
-    void postProcessClassPath(List<File> files);
+	void postProcessClassPath(List<File> files);
 }

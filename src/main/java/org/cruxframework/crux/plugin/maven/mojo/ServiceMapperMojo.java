@@ -101,6 +101,6 @@ public class ServiceMapperMojo extends AbstractResourcesMojo
 			servicesOutputDir.mkdirs();
 		}
 	    
-	    FileUtils.copyFilesFromDir(getGeneratedResourcesDir(), servicesOutputDir, "**/crux-re*", null);
+	    FileUtils.copyFilesFromDir(getGeneratedResourcesDir(), servicesOutputDir, "META-INF/crux-re*", null);
     }
 }
