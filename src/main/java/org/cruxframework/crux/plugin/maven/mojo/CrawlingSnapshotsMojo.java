@@ -41,7 +41,7 @@ import org.cruxframework.crux.tools.server.JettyDevServer;
  */
 @Mojo(name = "generate-html-snapshots", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, 
 requiresDependencyResolution=ResolutionScope.COMPILE, threadSafe = true)
-public class CrawlingSnapshotsMojo extends AbstractToolMojo
+public class CrawlingSnapshotsMojo extends AbstractShellMojo
 {
 	/**
      * The directory into which extra, non-deployed files will be written.
@@ -92,7 +92,7 @@ public class CrawlingSnapshotsMojo extends AbstractToolMojo
 	@Parameter
 	private List<Target> snapshots;
 
-	private File tempFile;
+	private File urlListFile;
 	
 	@Override
     public void execute() throws MojoExecutionException, MojoFailureException
@@ -131,9 +131,9 @@ public class CrawlingSnapshotsMojo extends AbstractToolMojo
 		else
 		{
 			generateSnapshots(urlFileList, appBaseURL);
-			if (tempFile != null && tempFile.exists())
+			if (urlListFile != null && urlListFile.exists())
 			{
-				tempFile.delete();
+				urlListFile.delete();
 			}
 		}
     }
@@ -200,15 +200,15 @@ public class CrawlingSnapshotsMojo extends AbstractToolMojo
 		{
 			try
 			{
-				tempFile = File.createTempFile("cruxCrawlingList", "urls");
-				PrintWriter out = new PrintWriter(tempFile);
+				urlListFile = File.createTempFile("cruxCrawlingList", "urls");
+				PrintWriter out = new PrintWriter(urlListFile);
 				for (Target target : snapshots)
 				{
 					String utl = target.getPage()+":"+target.getEscapedFragment();
 					out.println(utl);
 				}
 				out.close();
-				return tempFile.getCanonicalPath();
+				return urlListFile.getCanonicalPath();
 			}
 			catch (Exception e)
 			{

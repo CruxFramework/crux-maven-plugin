@@ -23,7 +23,7 @@ import org.apache.maven.plugins.annotations.Parameter;
  * @author thiago
  *
  */
-public abstract class AbstractResourcesMojo extends AbstractToolMojo
+public abstract class AbstractResourcesMojo extends AbstractShellMojo
 {
 	/**
 	 * Location on filesystem where Crux will write generated resource files.

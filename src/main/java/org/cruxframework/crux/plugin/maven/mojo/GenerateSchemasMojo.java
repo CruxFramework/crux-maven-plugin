@@ -34,15 +34,22 @@ import org.cruxframework.crux.tools.schema.SchemaGenerator;
  *  used by the application. 
  * @author Thiago da Rosa de Bustamante
  */
-@Mojo(name = "generate-xsds", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, 
+@Mojo(name = "generate-xsds", defaultPhase = LifecyclePhase.COMPILE, 
 		requiresDependencyResolution=ResolutionScope.COMPILE, threadSafe = true)
-public class GenerateSchemasMojo extends AbstractToolMojo
+public class GenerateSchemasMojo extends AbstractShellMojo
 {
 	/**
-	 * Location on filesystem where Crux will write output files.
+	 * Location on filesystem where Crux will write generated resource files.
 	 */
-	@Parameter(property = "xsd.output.dir", defaultValue = "${project.basedir}/xsd", alias = "XsdOutputDirectory")
+	@Parameter(property = "xsd.output.dir", defaultValue = "${project.build.directory}/xsd", alias = "XsdOutputDir")
 	private File xsdOutputDir;
+
+	
+	/**
+	 * If true generates also an HTML Documentation for the libraries.
+	 */
+	@Parameter(property = "xsd.gen.doc", defaultValue = "false", alias = "XsdGenDoc")
+	private boolean generateDoc;
 
 	public void execute() throws MojoExecutionException
 	{
@@ -54,6 +61,7 @@ public class GenerateSchemasMojo extends AbstractToolMojo
 
 		if (!xsdOutputDir.exists())
 		{
+			getLog().debug("Creating target directory " + xsdOutputDir.getAbsolutePath());
 			xsdOutputDir.mkdirs();
 		}
 
@@ -68,8 +76,13 @@ public class GenerateSchemasMojo extends AbstractToolMojo
 
 		try
 		{
-			cmd.arg(getProject().getBasedir().getCanonicalPath())
-			   .arg(xsdOutputDir.getCanonicalPath())
+			cmd.arg(getProject().getBasedir().getCanonicalPath());
+			if (generateDoc)
+			{
+				cmd.arg("-generateDoc");
+			}
+			
+			cmd.arg(xsdOutputDir.getCanonicalPath())
 			   .setErr(new StreamConsumer()
 			{
 				@Override

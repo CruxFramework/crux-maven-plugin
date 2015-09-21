@@ -46,10 +46,10 @@ public class LibraryMapperMojo extends AbstractResourcesMojo
 
 		setupGenerateDirectory();
 
-		serviceMapping();
+		libraryMapping();
 	}
 
-	private void serviceMapping() throws MojoExecutionException
+	private void libraryMapping() throws MojoExecutionException
 	{
 		getLog().info("Mapping Libraries...");
 		JavaCommand cmd = createJavaCommand().setMainClass(LibraryMapper.class.getCanonicalName());
@@ -78,7 +78,7 @@ public class LibraryMapperMojo extends AbstractResourcesMojo
 		}
 		catch (IOException e)
 		{
-			throw new MojoExecutionException("Can not read the informed output directory", e);
+			throw new MojoExecutionException("Can write files on the informed output directory", e);
 		}
 	}
 }
