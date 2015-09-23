@@ -53,7 +53,7 @@ public class LibraryMapperMojo extends AbstractResourcesMojo
 	{
 		getLog().info("Mapping Libraries...");
 		JavaCommand cmd = createJavaCommand().setMainClass(LibraryMapper.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE));
+		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, true));
 
 		try
 		{

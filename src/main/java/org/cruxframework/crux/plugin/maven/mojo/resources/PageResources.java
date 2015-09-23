@@ -13,7 +13,7 @@
  * License for the specific language governing permissions and limitations under
  * the License.
  */
-package org.cruxframework.crux.plugin.maven.mojo;
+package org.cruxframework.crux.plugin.maven.mojo.resources;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -23,84 +23,23 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
-import org.apache.maven.plugins.annotations.LifecyclePhase;
-import org.apache.maven.plugins.annotations.Mojo;
-import org.apache.maven.plugins.annotations.Parameter;
-import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.Scanner;
 import org.cruxframework.crux.core.declarativeui.ViewProcessor;
 import org.cruxframework.crux.plugin.maven.view.MojoViewLoader;
-import org.sonatype.plexus.build.incremental.BuildContext;
 import org.w3c.dom.Document;
 
 /**
- * Create a map of application services. It is used by RestServlet and RPCServlet to find out which implementation should be invoked for
- * each requested operation.
- * 
  * @author Thiago da Rosa de Bustamante
+ * 
  */
-@Mojo(name = "process-crux-pages", defaultPhase = LifecyclePhase.GENERATE_RESOURCES, requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
-public class CruxPageResourcesMojo extends AbstractToolMojo
+public class PageResources extends AbstractResourcesHandler
 {
-	@Component
-	private BuildContext buildContext;
-
-	/**
-	 * The name of the module that contains the crux pages to be processed.
-	 */
-	@Parameter(property = "crux.module", alias = "Module", required=true)
-	private String module;
-
-	/**
-	 * Location on filesystem where Crux will write output files.
-	 */
-	@Parameter(property = "pages.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/", alias = "PagesOutputDirectory")
-	private File pagesOutputDir;
+	public PageResources(CruxResourcesMojo resourcesMojo)
+    {
+		super(resourcesMojo);
+    }
 	
-	/**
-	 * The name of the module that contains the crux pages to be processed.
-	 */
-	@Parameter(property = "crux.view.base.folder", alias = "ViewBaseFolder", defaultValue="client/view")
-	private String viewBaseFolder;
-	
-	public void execute() throws MojoExecutionException
-	{
-		if ("pom".equals(getProject().getPackaging()))
-		{
-			getLog().info("HTML generation is skipped");
-			return;
-		}
-
-		if (viewBaseFolder.endsWith("/"))
-		{
-			viewBaseFolder = viewBaseFolder.substring(0, viewBaseFolder.length()-1);
-		}
-		if (viewBaseFolder.startsWith("/"))
-		{
-			viewBaseFolder = viewBaseFolder.substring(1);
-		}
-
-		if (!pagesOutputDir.exists())
-		{
-			getLog().debug("Creating target output directory " + pagesOutputDir.getAbsolutePath());
-			pagesOutputDir.mkdirs();
-		}
-		
-		generatePages();
-	}
-
-	private boolean generateHTMLPage(String viewId, File sourceFile, File targetFile) throws Exception
-	{
-		ViewProcessor viewProcessor = new ViewProcessor(new MojoViewLoader());
-		Document view = viewProcessor.getView(new FileInputStream(sourceFile), viewId, null);
-		FileOutputStream out = new FileOutputStream(targetFile);
-		viewProcessor.generateHTML(viewId, view, out);
-		out.close();
-		return true;
-	}
-
-	private void generatePages() throws MojoExecutionException
+	protected void generatePages() throws MojoExecutionException
 	{
 		List<String> sourceRoots = getProject().getCompileSourceRoots();
 		for (String sourceRoot : sourceRoots)
@@ -129,24 +68,29 @@ public class CruxPageResourcesMojo extends AbstractToolMojo
 	        
         }
 	}
-	
-	private String getModuleBaseFolder()
+
+	private boolean generateHTMLPage(String viewId, File sourceFile, File targetFile) throws Exception
 	{
-		return module.substring(0, module.lastIndexOf('.')).replace('.', '/');
+		ViewProcessor viewProcessor = new ViewProcessor(new MojoViewLoader());
+		Document view = viewProcessor.getView(new FileInputStream(sourceFile), viewId, null);
+		FileOutputStream out = new FileOutputStream(targetFile);
+		viewProcessor.generateHTML(viewId, view, out);
+		out.close();
+		return true;
 	}
 
 	private File getTargetFile(String viewId)
     {
 	    if (viewId != null)
 	    {
-	    	return new File(pagesOutputDir, viewId+".html");
+	    	return new File(getPagesOutputDir(), viewId+".html");
 	    }
 	    return null;
     }
-
+	
 	private String getViewId(String source)
     {
-		String modulePrefix = getModuleBaseFolder()+"/"+viewBaseFolder+"/";
+		String modulePrefix = getModuleBaseFolder()+"/"+getViewBaseFolder()+"/";
 		if (source.startsWith(modulePrefix))
 		{
 			return source.substring(modulePrefix.length(), source.length()-9);
@@ -154,7 +98,7 @@ public class CruxPageResourcesMojo extends AbstractToolMojo
 		
 		return null;
     }
-	
+
 	private void scanAndGeneratePages(File sourceRoot) throws Exception
 	{
 		if (getLog().isDebugEnabled())
@@ -163,7 +107,7 @@ public class CruxPageResourcesMojo extends AbstractToolMojo
 		}
 
 		
-		Scanner scanner = buildContext.newScanner(sourceRoot);
+		Scanner scanner = getBuildContext().newScanner(sourceRoot);
 		scanner.setIncludes(new String[] { "**/*.crux.xml" });
 		scanner.scan();
 		String[] sources = scanner.getIncludedFiles();
@@ -178,7 +122,7 @@ public class CruxPageResourcesMojo extends AbstractToolMojo
 			if (!StringUtils.isEmpty(viewId))
 			{
 				File targetFile = getTargetFile(viewId);
-				if (buildContext.isUptodate(targetFile, sourceFile))
+				if (getBuildContext().isUptodate(targetFile, sourceFile))
 				{
 					getLog().debug(targetFile.getAbsolutePath() + " is up to date. Generation skipped");
 					continue;

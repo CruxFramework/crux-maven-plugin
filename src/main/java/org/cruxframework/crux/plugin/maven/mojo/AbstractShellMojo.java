@@ -64,7 +64,7 @@ public abstract class AbstractShellMojo extends AbstractToolMojo
 		this.timeOut = timeOut;
 	}
 
-	protected JavaCommand createJavaCommand()
+	public JavaCommand createJavaCommand()
 	{
 		return new JavaCommand().setLog(getLog()).setJvm(getJvm()).setJvmArgs(getJvmArgs()).setTimeOut(timeOut)
 		    .addClassPathProcessors(new ClassPathProcessor()

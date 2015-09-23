@@ -165,7 +165,7 @@ public class CrawlingSnapshotsMojo extends AbstractShellMojo
     {
 		getLog().info("Generating HTML Snapshots...");
 		JavaCommand cmd = createJavaCommand().setMainClass(CrawlingTool.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE));
+		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, true));
 
 		try
 		{

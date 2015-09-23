@@ -1,0 +1,238 @@
+/*
+ * Copyright 2015 cruxframework.org.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License"); you may not
+ * use this file except in compliance with the License. You may obtain a copy of
+ * the License at
+ * 
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+ * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+ * License for the specific language governing permissions and limitations under
+ * the License.
+ */
+package org.cruxframework.crux.plugin.maven.mojo.resources;
+
+import java.io.File;
+import java.io.IOException;
+
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
+import org.apache.maven.plugins.annotations.LifecyclePhase;
+import org.apache.maven.plugins.annotations.Mojo;
+import org.apache.maven.plugins.annotations.Parameter;
+import org.apache.maven.plugins.annotations.ResolutionScope;
+import org.cruxframework.crux.core.utils.FileUtils;
+import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
+import org.sonatype.plexus.build.incremental.BuildContext;
+
+import com.thoughtworks.qdox.JavaDocBuilder;
+
+/**
+ * Create a map of application services. It is used by RestServlet and RPCServlet to find out which implementation should be invoked for
+ * each requested operation.
+ * 
+ * @author Thiago da Rosa de Bustamante
+ */
+@Mojo(name = "process-crux-resources", defaultPhase = LifecyclePhase.COMPILE, 
+requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
+public class CruxResourcesMojo extends AbstractResourcesMojo
+{
+	@Component
+	private BuildContext buildContext;
+
+	private JavaDocBuilder builder;
+
+	/**
+	 * The name of the module that contains the crux pages to be processed.
+	 */
+	@Parameter(property = "crux.module", alias = "Module", required=true)
+	private String module;
+
+	/**
+	 * Location on filesystem where Crux will write output files.
+	 */
+	@Parameter(property = "pages.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/", alias = "PagesOutputDirectory")
+	private File pagesOutputDir;
+
+	/**
+	 * The expressions used to identify service candidates on project.
+	 */
+	@Parameter(property = "crux.service.expression", alias = "ServiceExpression", defaultValue="**/*Service.java")
+	private String serviceExpression;
+	
+	/**
+	 * The expressions used to identify service candidates on project.
+	 */
+	@Parameter(alias = "ServiceExpressions")
+	private String[] serviceExpressions;
+
+	/**
+	 * Location on filesystem where Crux will write service metadata files.
+	 */
+	@Parameter(property = "services.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/", alias = "ServicesOutputDirectory")
+	private File servicesOutputDir;
+
+
+	/**
+	 * If true, plugin will automatically update META-INF/ library metadata files.
+	 */
+	@Parameter(property = "crux.sync.library.metadata", alias = "SyncLiraryMetadata", defaultValue="true")
+	private boolean syncLiraryMetadata;
+
+	/**
+	 * If true, plugin will automatically update META-INF/ service metadata files.
+	 */
+	@Parameter(property = "crux.sync.service.metadata", alias = "SyncServiceMetadata", defaultValue="true")
+	private boolean syncServiceMetadata;
+
+	/**
+	 * The name of the module that contains the crux pages to be processed.
+	 */
+	@Parameter(property = "crux.targetWebXml", alias = "targetWebXml", defaultValue="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml")
+	private File targetWebXml;
+
+	/**
+	 * The name of the module that contains the crux pages to be processed.
+	 */
+	@Parameter(property = "crux.view.base.folder", alias = "ViewBaseFolder", defaultValue="client/view")
+	private String viewBaseFolder;
+	
+	/**
+	 * The name of the module that contains the crux pages to be processed.
+	 */
+	@Parameter(property = "crux.webXml", alias = "WebXml", defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
+	private File webXml;
+
+	/**
+	 * The expressions used to identify widgetCreator candidates on project.
+	 */
+	@Parameter(property = "crux.widget.creator.expression", alias = "WidgetCreatorExpression", defaultValue="**/rebind/**/*Factory.java")
+	private String widgetCreatorExpression;
+
+	/**
+	 * The expressions used to identify widgetCreator candidates on project.
+	 */
+	@Parameter(alias = "WidgetCreatorExpressions")
+	private String[] widgetCreatorExpressions;
+	
+	
+	public void execute() throws MojoExecutionException
+	{
+		if ("pom".equals(getProject().getPackaging()))
+		{
+			getLog().info("HTML generation is skipped");
+			return;
+		}
+
+		setupGenerateDirectory();
+		setuptPageFolders();
+
+		updateWebXml();
+
+		PageResources pageResources = new PageResources(this); 
+		pageResources.generatePages();
+
+		if (syncLiraryMetadata)
+		{
+			LibraryResources libraryResources = new LibraryResources(this);
+			libraryResources.generateMapping();
+		}
+		if (syncServiceMetadata)
+		{
+			ServiceResources serviceResources = new ServiceResources(this);
+			serviceResources.generateMapping();
+		}
+	}
+
+	@Override
+	public boolean isGenerator()
+	{
+	    return true;
+	}
+
+	protected BuildContext getBuildContext()
+	{
+		return buildContext;
+	}
+
+	protected JavaDocBuilder getJavaDocBuilder() throws MojoExecutionException
+	{
+		if (builder == null)
+		{
+			builder = createJavaDocBuilder();
+		}
+		return builder;
+	}
+
+	protected String getModuleBaseFolder()
+	{
+		return module.substring(0, module.lastIndexOf('.')).replace('.', '/');
+	}
+
+	protected File getPagesOutputDir()
+	{
+		return pagesOutputDir;
+	}
+	
+	protected String[] getServiceExpression()
+	{
+		if (serviceExpressions == null)
+		{
+			serviceExpressions = new String[]{serviceExpression};
+		}
+		return serviceExpressions;
+	}
+
+	protected File getServicesOuputDir()
+	{
+		return servicesOutputDir;
+	}
+
+	protected String getViewBaseFolder()
+	{
+		return viewBaseFolder;
+	}
+	
+	protected String[] getWidgetCreatorExpression()
+	{
+		if (widgetCreatorExpressions == null)
+		{
+			widgetCreatorExpressions = new String[]{widgetCreatorExpression};
+		}
+		return widgetCreatorExpressions;
+	}
+	
+	protected void updateWebXml() throws MojoExecutionException
+	{
+		try
+		{
+			targetWebXml.getParentFile().mkdirs();
+			FileUtils.copyFile(webXml, targetWebXml);
+		}
+		catch (IOException e)
+		{
+			throw new MojoExecutionException("Error updating web.xml file", e);
+		}
+	}
+	
+	private void setuptPageFolders()
+	{
+		if (viewBaseFolder.endsWith("/"))
+		{
+			viewBaseFolder = viewBaseFolder.substring(0, viewBaseFolder.length()-1);
+		}
+		if (viewBaseFolder.startsWith("/"))
+		{
+			viewBaseFolder = viewBaseFolder.substring(1);
+		}
+
+		if (!pagesOutputDir.exists())
+		{
+			getLog().debug("Creating target output directory " + pagesOutputDir.getAbsolutePath());
+			pagesOutputDir.mkdirs();
+		}
+	}
+}

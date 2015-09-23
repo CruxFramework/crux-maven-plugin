@@ -46,7 +46,7 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 	{
 		return override;
 	}
-	
+
 	protected File setupGenerateDirectory()
 	{
 		if (!getGeneratedResourcesDir().exists())
@@ -55,7 +55,7 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 			getGeneratedResourcesDir().mkdirs();
 		}
 		getLog().debug("Add compile source root " + getGeneratedResourcesDir().getAbsolutePath());
-		
+
 		getProject().addCompileSourceRoot(getGeneratedResourcesDir().getAbsolutePath());
 		return getGeneratedResourcesDir();
 	}
