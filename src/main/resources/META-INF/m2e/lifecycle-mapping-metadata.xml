@@ -44,7 +44,7 @@
 		<pluginExecution>
 			<pluginExecutionFilter>
 				<goals>
-					<goal>process-crux-pages</goal>
+					<goal>process-crux-resources</goal>
 				</goals>
 			</pluginExecutionFilter>
 			<action>

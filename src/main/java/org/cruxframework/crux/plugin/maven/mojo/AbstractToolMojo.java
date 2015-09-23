@@ -16,6 +16,9 @@
 package org.cruxframework.crux.plugin.maven.mojo;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -29,6 +32,8 @@ import org.apache.maven.project.MavenProject;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilder;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilderException;
 
+import com.thoughtworks.qdox.JavaDocBuilder;
+
 /**
  * @author Thiago da Rosa de Bustamante
  *
@@ -38,6 +43,8 @@ public abstract class AbstractToolMojo extends AbstractMojo
 	@Component(role = ClasspathBuilder.class)
 	protected ClasspathBuilder classpathBuilder;
 
+	@Parameter(property = "project.build.sourceEncoding", defaultValue="${project.build.sourceEncoding}")
+    private String encoding;
 
 	@Parameter(defaultValue = "${plugin.artifactMap}", required = true, readonly = true)
 	private Map<String, Artifact> pluginArtifactMap;
@@ -46,7 +53,19 @@ public abstract class AbstractToolMojo extends AbstractMojo
 	 * The maven project descriptor
 	 */
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
-	private MavenProject project;
+	private MavenProject project;	
+	
+	public JavaDocBuilder createJavaDocBuilder() throws MojoExecutionException
+	{
+		JavaDocBuilder builder = new JavaDocBuilder();
+		builder.setEncoding(encoding);
+		builder.getClassLibrary().addClassLoader(getProjectClassLoader(true));
+		for (String sourceRoot : getProject().getCompileSourceRoots())
+		{
+			builder.getClassLibrary().addSourceFolder(new File(sourceRoot));
+		}
+		return builder;
+	}
 
 	/**
 	 * Build the classpath for the specified scope
@@ -55,11 +74,11 @@ public abstract class AbstractToolMojo extends AbstractMojo
 	 * @return a collection of dependencies as Files for the specified scope.
 	 * @throws MojoExecutionException if classPath building failed
 	 */
-	public Collection<File> getClasspath(String scope) throws MojoExecutionException
+	public Collection<File> getClasspath(String scope, boolean addSources) throws MojoExecutionException
 	{
 		try
 		{
-			Collection<File> files = classpathBuilder.buildClasspathList(getProject(), scope, getProjectArtifacts(), isGenerator());
+			Collection<File> files = classpathBuilder.buildClasspathList(getProject(), scope, getProjectArtifacts(), isGenerator(), addSources);
 
 			if (getLog().isDebugEnabled())
 			{
@@ -76,9 +95,14 @@ public abstract class AbstractToolMojo extends AbstractMojo
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
 	}
+	
+	public MavenProject getProject()
+	{
+		return project;
+	}
 
 	public Set<Artifact> getProjectArtifacts()
-    {
+	{
 		if (getLog().isDebugEnabled())
 		{
 			getLog().debug("Project Artifacts:");
@@ -87,20 +111,40 @@ public abstract class AbstractToolMojo extends AbstractMojo
 				getLog().debug("   " + a.getArtifactId());
 			}
 		}
-		
-        return project.getArtifacts();
-    }
 
-	protected MavenProject getProject()
+		return project.getArtifacts();
+	}
+
+	public ClassLoader getProjectClassLoader(boolean addSources) throws MojoExecutionException
 	{
-		return project;
+		return new URLClassLoader(getClassPathURLs(addSources), ClassLoader.getSystemClassLoader());
+	}
+	
+	public URL[] getClassPathURLs(boolean addSources) throws MojoExecutionException
+	{
+		Collection<File> classpath = getClasspath(Artifact.SCOPE_COMPILE, addSources);
+		URL[] urls = new URL[classpath.size()];
+		try
+		{
+			int i = 0;
+			for (File classpathFile : classpath)
+			{
+				urls[i] = classpathFile.toURI().toURL();
+				i++;
+			}
+		}
+		catch (MalformedURLException e)
+		{
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+		return urls;
 	}
 
 	/**
-     * Whether to use processed resources and compiled classes ({@code false}), or raw resources ({@code true }).
-     */
-	protected boolean isGenerator()
-    {
-	    return false;
-    }
+	 * Whether to use processed resources and compiled classes ({@code false}), or raw resources ({@code true }).
+	 */
+	public boolean isGenerator()
+	{
+		return false;
+	}
 }

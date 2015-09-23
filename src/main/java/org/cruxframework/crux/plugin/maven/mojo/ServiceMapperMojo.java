@@ -25,7 +25,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.cli.StreamConsumer;
-import org.cruxframework.crux.core.utils.FileUtils;
+import org.cruxframework.crux.plugin.maven.mojo.resources.ServiceResources;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommandException;
 import org.cruxframework.crux.tools.servicemap.ServiceMapper;
@@ -62,7 +62,7 @@ public class ServiceMapperMojo extends AbstractResourcesMojo
 	{
 		getLog().info("Mapping Services...");
 		JavaCommand cmd = createJavaCommand().setMainClass(ServiceMapper.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE));
+		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, true));
 
 		try
 		{
@@ -82,7 +82,7 @@ public class ServiceMapperMojo extends AbstractResourcesMojo
 			})
 			   .execute();
 			
-			installGeneratedResources();
+			ServiceResources.installGeneratedResources(getGeneratedResourcesDir(), servicesOutputDir);
 		}
 		catch (JavaCommandException e)
 		{
@@ -93,14 +93,4 @@ public class ServiceMapperMojo extends AbstractResourcesMojo
 			throw new MojoExecutionException("Can write files on the informed output directory", e);
 		}
 	}
-
-	private void installGeneratedResources() throws IOException
-    {
-	    if (!servicesOutputDir.exists())
-		{
-			servicesOutputDir.mkdirs();
-		}
-	    
-	    FileUtils.copyFilesFromDir(getGeneratedResourcesDir(), servicesOutputDir, "META-INF/crux-re*", null);
-    }
 }

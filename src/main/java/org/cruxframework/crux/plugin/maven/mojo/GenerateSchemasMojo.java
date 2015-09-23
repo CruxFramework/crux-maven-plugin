@@ -34,7 +34,7 @@ import org.cruxframework.crux.tools.schema.SchemaGenerator;
  *  used by the application. 
  * @author Thiago da Rosa de Bustamante
  */
-@Mojo(name = "generate-xsds", defaultPhase = LifecyclePhase.COMPILE, 
+@Mojo(name = "generate-xsds", defaultPhase = LifecyclePhase.PREPARE_PACKAGE, 
 		requiresDependencyResolution=ResolutionScope.COMPILE, threadSafe = true)
 public class GenerateSchemasMojo extends AbstractShellMojo
 {
@@ -72,7 +72,7 @@ public class GenerateSchemasMojo extends AbstractShellMojo
 	{
 		getLog().info("Generating XSD files...");
 		JavaCommand cmd = createJavaCommand().setMainClass(SchemaGenerator.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE));
+		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, true));
 
 		try
 		{
