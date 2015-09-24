@@ -19,6 +19,7 @@ import java.io.File;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
@@ -27,15 +28,15 @@ import org.sonatype.plexus.build.incremental.BuildContext;
  */
 public abstract class AbstractResourcesHandler
 {
-	private CruxResourcesMojo resourcesMojo;
+	private AbstractResourcesMojo resourcesMojo;
 
-	protected AbstractResourcesHandler(CruxResourcesMojo resourcesMojo)
+	protected AbstractResourcesHandler(AbstractResourcesMojo resourcesMojo)
 	{
 		this.resourcesMojo = resourcesMojo;
 	}
 	protected BuildContext getBuildContext()
 	{
-		return getResourcesMojo().getBuildContext();
+		return resourcesMojo.getBuildContext();
 	}
 
 	protected File getGeneratedResourcesDir()
@@ -48,28 +49,14 @@ public abstract class AbstractResourcesHandler
 		return resourcesMojo.getLog();
 	}
 
-	protected String getModuleBaseFolder()
-	{
-		return resourcesMojo.getModuleBaseFolder();
-	}
-
-	protected File getPagesOutputDir()
-	{
-		return resourcesMojo.getPagesOutputDir();
-	}
-
 	protected MavenProject getProject()
 	{
 		return resourcesMojo.getProject();
 	}
 
-	protected CruxResourcesMojo getResourcesMojo()
+	@SuppressWarnings("unchecked")
+    protected <T extends AbstractResourcesMojo> T getResourcesMojo()
 	{
-		return resourcesMojo;
-	}
-	
-	protected String getViewBaseFolder()
-	{
-		return resourcesMojo.getViewBaseFolder();
+		return (T)resourcesMojo;
 	}
 }

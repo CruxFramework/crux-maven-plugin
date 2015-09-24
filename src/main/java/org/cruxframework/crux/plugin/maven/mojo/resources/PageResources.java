@@ -69,6 +69,24 @@ public class PageResources extends AbstractResourcesHandler
         }
 	}
 
+	protected String getModuleBaseFolder()
+	{
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+		return resourcesMojo.getModuleBaseFolder();
+	}
+
+	protected File getPagesOutputDir()
+	{
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+		return resourcesMojo.getPagesOutputDir();
+	}
+	
+	protected String getViewBaseFolder()
+	{
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+		return resourcesMojo.getViewBaseFolder();
+	}
+
 	private boolean generateHTMLPage(String viewId, File sourceFile, File targetFile) throws Exception
 	{
 		ViewProcessor viewProcessor = new ViewProcessor(new MojoViewLoader());
@@ -90,6 +108,10 @@ public class PageResources extends AbstractResourcesHandler
 	
 	private String getViewId(String source)
     {
+		if (File.separatorChar != '/')
+		{
+			source = source.replace(File.separatorChar, '/');
+		}
 		String modulePrefix = getModuleBaseFolder()+"/"+getViewBaseFolder()+"/";
 		if (source.startsWith(modulePrefix))
 		{

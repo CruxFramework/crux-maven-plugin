@@ -53,7 +53,7 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 
 	public ServiceResources(CruxResourcesMojo resourcesMojo)
 	{
-		super(resourcesMojo);
+		super(resourcesMojo, true);
 		File metaInfFile = new File(getGeneratedResourcesDir(), "META-INF");
 		dependenciesGenDir = new File(getGeneratedResourcesDir(), "../deps");
 		restMapFile = new File(metaInfFile, "crux-rest");
@@ -98,7 +98,8 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 
 	protected String[] getScannerExpressions() throws MojoExecutionException
 	{
-		return getResourcesMojo().getServiceExpression();
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+		return resourcesMojo.getServiceExpression();
 	}
 
 	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException
@@ -229,7 +230,8 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 
 	private File getServicesInstallationDir()
     {
-	    return getResourcesMojo().getServicesOuputDir();
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+	    return resourcesMojo.getServicesOuputDir();
     }
 
 	public static void installGeneratedResources(File generatedResourcesDir, File servicesOutputDir) throws MojoExecutionException
