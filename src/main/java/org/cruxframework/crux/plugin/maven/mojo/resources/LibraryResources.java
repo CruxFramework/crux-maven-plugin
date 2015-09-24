@@ -54,7 +54,7 @@ public class LibraryResources extends AbstractScannableResourcesHandler
 
 	public LibraryResources(CruxResourcesMojo resourcesMojo)
 	{
-		super(resourcesMojo);
+		super(resourcesMojo, true);
 		File metaInfFile = new File(getGeneratedResourcesDir(), "META-INF");
 		dependenciesGenDir = new File(getGeneratedResourcesDir(), "../deps");
 		depsFactoryMapFile = new File(dependenciesGenDir, "META-INF/crux-widgets-factory");
@@ -160,7 +160,8 @@ public class LibraryResources extends AbstractScannableResourcesHandler
 	
 	protected String[] getScannerExpressions() throws MojoExecutionException
 	{
-		return getResourcesMojo().getWidgetCreatorExpression();
+		CruxResourcesMojo resourcesMojo = getResourcesMojo();
+		return resourcesMojo.getWidgetCreatorExpression();
 	}
 
 	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException

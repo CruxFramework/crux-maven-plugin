@@ -16,11 +16,18 @@
 package org.cruxframework.crux.plugin.maven.mojo.resources;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.Scanner;
+import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 
 import com.thoughtworks.qdox.JavaDocBuilder;
@@ -32,9 +39,13 @@ import com.thoughtworks.qdox.model.JavaClass;
  */
 public abstract class AbstractScannableResourcesHandler extends AbstractResourcesHandler
 {
-	protected AbstractScannableResourcesHandler(CruxResourcesMojo resourcesMojo)
+	private boolean fullSourcesSearch;
+	private boolean includeResources;
+
+	protected AbstractScannableResourcesHandler(AbstractResourcesMojo resourcesMojo, boolean fullSourcesSearch)
 	{
 		super(resourcesMojo);
+		this.fullSourcesSearch = fullSourcesSearch;
 	}
 
 	public void generateMapping() throws MojoExecutionException
@@ -44,34 +55,62 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			generateFullMappingFile();
 		}
 
+		boolean hasChanges = false;
+		Set<String> sources = new HashSet<String>();
+		
 		List<String> sourceRoots = getProject().getCompileSourceRoots();
 		for (String sourceRoot : sourceRoots)
 		{
 			try
 			{
-				if (scanAndGenerateMap(new File(sourceRoot)))
+				if (scanAndGenerateMap(new File(sourceRoot), sources))
 				{
-					return;
+					hasChanges = true;
 				}
 			}
 			catch (Exception e)
 			{
-				throw new MojoExecutionException("Failed to generate libraries mapping files", e);
+				throw new MojoExecutionException("Failed to generate mapping files", e);
+			}
+		}
+		if (includeResources)
+		{
+			List<Resource> resources = getProject().getResources();
+
+			for (Resource resource : resources)
+			{
+				try
+				{
+					if (scanAndGenerateMap(new File(resource.getDirectory()), sources))
+					{
+						hasChanges = true;
+					}
+				}
+				catch (Exception e)
+				{
+					throw new MojoExecutionException("Failed to generate mapping files", e);
+				}
 			}
 		}
 
+		if (hasChanges)
+		{
+			includeChanges(sources);
+			generateIncrementalMappingFile();
+		}
+		
 		if (getLog().isDebugEnabled())
 		{
-			getLog().debug("All library metadata is uptaded. Ignoring generation.");
+			getLog().debug("All metadata is uptaded. Ignoring generation.");
 		}
 	}
-
-	protected abstract void generateFullMappingFile() throws MojoExecutionException;
 
 	protected JavaCommand createJavaCommand()
 	{
 		return getResourcesMojo().createJavaCommand();
 	}
+
+	protected abstract void generateFullMappingFile() throws MojoExecutionException;
 
 	protected abstract void generateIncrementalMappingFile() throws MojoExecutionException;
 
@@ -93,6 +132,23 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		return getResourcesMojo().getJavaDocBuilder();
 	}
 
+	protected Scanner getScanner(File sourceRoot) throws IOException
+	{
+		Scanner scanner;
+		if (fullSourcesSearch)
+		{
+			DirectoryScanner dirScanner = new DirectoryScanner();
+			dirScanner.setBasedir(sourceRoot.getCanonicalPath());
+			scanner = dirScanner;
+
+		}
+		else
+		{
+			scanner = getBuildContext().newScanner(sourceRoot);
+		}
+		return scanner;
+	}
+
 	protected abstract String[] getScannerExpressions() throws MojoExecutionException;
 
 	protected String getTopLevelClassName(String sourceFile)
@@ -101,29 +157,27 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		return className.replace(File.separatorChar, '.');
 	}
 
-	protected abstract boolean isElegibleForGeneration(String source) throws MojoExecutionException;
-
 	protected abstract void includeChanged(String sourceFile) throws MojoExecutionException;
 
-	protected boolean scanAndGenerateMap(File sourceRoot) throws Exception
+	protected abstract boolean isElegibleForGeneration(String source) throws MojoExecutionException;
+
+	protected boolean scanAndGenerateMap(File sourceRoot, Set<String> sources) throws Exception
 	{
 		if (getLog().isDebugEnabled())
 		{
 			getLog().debug("Scanning source folder: " + sourceRoot.getCanonicalPath());
 		}
 
-//		Scanner scanner = getBuildContext().newScanner(sourceRoot);
-		DirectoryScanner scanner = new DirectoryScanner();
-		scanner.setBasedir(sourceRoot.getCanonicalPath());
+		Scanner scanner = getScanner(sourceRoot);
 		scanner.setIncludes(getScannerExpressions());
 		scanner.scan();
-		String[] sources = scanner.getIncludedFiles();
-		if (sources.length == 0)
+		String[] includedSources = scanner.getIncludedFiles();
+		if (includedSources.length == 0)
 		{
 			return false;
 		}
 		boolean hasChanges = false;
-		for (String source : sources)
+		for (String source : includedSources)
 		{
 			File sourceFile = new File(sourceRoot, source);
 			if (!getBuildContext().isUptodate(getCheckFile(), sourceFile))
@@ -135,14 +189,11 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 				}
 			}
 		}
-		if (hasChanges)
-		{
-			generateMapForChanges(sources);
-		}
+		sources.addAll(Arrays.asList(includedSources));
 		return hasChanges;
 	}
 
-	private void generateMapForChanges(String[] sources) throws Exception
+	private void includeChanges(Set<String> sources) throws MojoExecutionException 
 	{
 		for (String source : sources)
 		{
@@ -151,6 +202,5 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 				includeChanged(source);
 			}
 		}
-		generateIncrementalMappingFile();
 	}
 }

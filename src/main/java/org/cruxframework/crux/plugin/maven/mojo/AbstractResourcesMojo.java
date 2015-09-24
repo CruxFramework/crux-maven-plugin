@@ -17,14 +17,24 @@ package org.cruxframework.crux.plugin.maven.mojo;
 
 import java.io.File;
 
+import org.apache.maven.plugin.MojoExecutionException;
+import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
+import org.sonatype.plexus.build.incremental.BuildContext;
+
+import com.thoughtworks.qdox.JavaDocBuilder;
 
 /**
- * @author thiago
+ * @author Thiago da Rosa de Bustamante
  *
  */
 public abstract class AbstractResourcesMojo extends AbstractShellMojo
 {
+	@Component
+	private BuildContext buildContext;
+
+	private JavaDocBuilder builder;
+
 	/**
 	 * Location on filesystem where Crux will write generated resource files.
 	 */
@@ -45,6 +55,20 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 	public boolean isOverride()
 	{
 		return override;
+	}
+
+	public BuildContext getBuildContext()
+	{
+		return buildContext;
+	}
+
+	public JavaDocBuilder getJavaDocBuilder() throws MojoExecutionException
+	{
+		if (builder == null)
+		{
+			builder = createJavaDocBuilder();
+		}
+		return builder;
 	}
 
 	protected File setupGenerateDirectory()

@@ -19,16 +19,12 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.cruxframework.crux.core.utils.FileUtils;
 import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
-import org.sonatype.plexus.build.incremental.BuildContext;
-
-import com.thoughtworks.qdox.JavaDocBuilder;
 
 /**
  * Create a map of application services. It is used by RestServlet and RPCServlet to find out which implementation should be invoked for
@@ -40,11 +36,6 @@ import com.thoughtworks.qdox.JavaDocBuilder;
 requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class CruxResourcesMojo extends AbstractResourcesMojo
 {
-	@Component
-	private BuildContext buildContext;
-
-	private JavaDocBuilder builder;
-
 	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
@@ -80,7 +71,7 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	 * If true, plugin will automatically update META-INF/ library metadata files.
 	 */
 	@Parameter(property = "crux.sync.library.metadata", alias = "SyncLiraryMetadata", defaultValue="true")
-	private boolean syncLiraryMetadata;
+	private boolean syncLibraryMetadata;
 
 	/**
 	 * If true, plugin will automatically update META-INF/ service metadata files.
@@ -135,7 +126,7 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 		PageResources pageResources = new PageResources(this); 
 		pageResources.generatePages();
 
-		if (syncLiraryMetadata)
+		if (syncLibraryMetadata)
 		{
 			LibraryResources libraryResources = new LibraryResources(this);
 			libraryResources.generateMapping();
@@ -151,20 +142,6 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	public boolean isGenerator()
 	{
 	    return true;
-	}
-
-	protected BuildContext getBuildContext()
-	{
-		return buildContext;
-	}
-
-	protected JavaDocBuilder getJavaDocBuilder() throws MojoExecutionException
-	{
-		if (builder == null)
-		{
-			builder = createJavaDocBuilder();
-		}
-		return builder;
 	}
 
 	protected String getModuleBaseFolder()
@@ -220,6 +197,8 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	
 	private void setuptPageFolders()
 	{
+		viewBaseFolder = viewBaseFolder.replace('\\', '/');
+		
 		if (viewBaseFolder.endsWith("/"))
 		{
 			viewBaseFolder = viewBaseFolder.substring(0, viewBaseFolder.length()-1);
