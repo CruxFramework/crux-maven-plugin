@@ -8,27 +8,10 @@
 				</goals>
 			</pluginExecutionFilter>
 			<action>
-				<ignore />
-			</action>
-		</pluginExecution>
-		<pluginExecution>
-			<pluginExecutionFilter>
-				<goals>
-					<goal>library-mapper</goal>
-				</goals>
-			</pluginExecutionFilter>
-			<action>
-				<ignore />
-			</action>
-		</pluginExecution>
-		<pluginExecution>
-			<pluginExecutionFilter>
-				<goals>
-					<goal>service-mapper</goal>
-				</goals>
-			</pluginExecutionFilter>
-			<action>
-				<ignore />
+				<execute>
+					<runOnIncremental>false</runOnIncremental>
+					<runOnConfiguration>true</runOnConfiguration>
+				</execute>
 			</action>
 		</pluginExecution>
 		<pluginExecution>
