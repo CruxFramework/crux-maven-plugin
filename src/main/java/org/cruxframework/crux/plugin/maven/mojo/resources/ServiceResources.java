@@ -53,7 +53,7 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 
 	public ServiceResources(CruxResourcesMojo resourcesMojo)
 	{
-		super(resourcesMojo, true);
+		super(resourcesMojo, true, false);
 		File metaInfFile = new File(getGeneratedResourcesDir(), "META-INF");
 		dependenciesGenDir = new File(getGeneratedResourcesDir(), "../deps");
 		restMapFile = new File(metaInfFile, "crux-rest");
@@ -63,12 +63,13 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 	}
 
 	@Override
-	protected void generateFullMappingFile() throws MojoExecutionException
+	protected boolean generateFullMappingFile() throws MojoExecutionException
 	{
 		if (!depsRestMapFile.exists())
 		{
 			generateDpendenciesMappinfile();	
 		}
+		return true;
 	}
 
 	@Override
@@ -224,7 +225,7 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 		}
 		catch (IOException e)
 		{
-			throw new MojoExecutionException("Can write files on the informed output directory", e);
+			throw new MojoExecutionException("Can not write files on the informed output directory", e);
 		}
     }
 
@@ -247,7 +248,7 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 		}
 		catch (IOException e)
 		{
-			throw new MojoExecutionException("Can write files on the informed output directory", e);
+			throw new MojoExecutionException("Can not write files on the informed output directory", e);
 		}
     }
 	

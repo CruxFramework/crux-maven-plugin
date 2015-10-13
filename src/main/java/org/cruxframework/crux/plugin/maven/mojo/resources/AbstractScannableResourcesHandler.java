@@ -42,19 +42,25 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 	private boolean fullSourcesSearch;
 	private boolean includeResources;
 
-	protected AbstractScannableResourcesHandler(AbstractResourcesMojo resourcesMojo, boolean fullSourcesSearch)
+	protected AbstractScannableResourcesHandler(AbstractResourcesMojo resourcesMojo, boolean fullSourcesSearch, boolean includeResources)
 	{
 		super(resourcesMojo);
 		this.fullSourcesSearch = fullSourcesSearch;
+		this.includeResources = includeResources;
 	}
 
 	public void generateMapping() throws MojoExecutionException
 	{
+		boolean shouldProcessIncrementally = true;
 		if (!getCheckFile().exists())
 		{
-			generateFullMappingFile();
+			shouldProcessIncrementally = generateFullMappingFile();
 		}
 
+		if (!shouldProcessIncrementally)
+		{
+			return;
+		}
 		boolean hasChanges = false;
 		Set<String> sources = new HashSet<String>();
 		
@@ -98,11 +104,6 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			includeChanges(sources);
 			generateIncrementalMappingFile();
 		}
-		
-		if (getLog().isDebugEnabled())
-		{
-			getLog().debug("All metadata is uptaded. Ignoring generation.");
-		}
 	}
 
 	protected JavaCommand createJavaCommand()
@@ -110,7 +111,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		return getResourcesMojo().createJavaCommand();
 	}
 
-	protected abstract void generateFullMappingFile() throws MojoExecutionException;
+	protected abstract boolean generateFullMappingFile() throws MojoExecutionException;
 
 	protected abstract void generateIncrementalMappingFile() throws MojoExecutionException;
 
