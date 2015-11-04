@@ -105,7 +105,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			includeChanges(sources);
 			generateIncrementalMappingFile();
 		}
-		else if (!CheckFileExists)
+		else if (!CheckFileExists && shouldProcessIncrementally)
 		{
 			generateIncrementalMappingFile();
 		}

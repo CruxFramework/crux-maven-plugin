@@ -41,15 +41,15 @@ import com.thoughtworks.qdox.model.annotation.AnnotationConstant;
  */
 public class ServiceResources extends AbstractScannableResourcesHandler
 {
-	private static final String REST_SERVICE_ANNOTATION = RestService.class.getCanonicalName();
 	private static final String REMOTE_SERVICE_INTERFACE = RemoteService.class.getCanonicalName();
+	private static final String REST_SERVICE_ANNOTATION = RestService.class.getCanonicalName();
 	private File dependenciesGenDir;
 	private File depsRestMapFile;
+	private File depsRpcMapFile;
 	private File restMapFile;
 	private Properties restProperties;
-	private File depsRpcMapFile;
-	private Properties rpcProperties;
 	private File rpcMapFile;
+	private Properties rpcProperties;
 
 	public ServiceResources(CruxResourcesMojo resourcesMojo)
 	{
@@ -103,35 +103,6 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 		return resourcesMojo.getServiceExpression();
 	}
 
-	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException
-	{
-		JavaClass javaClass = getJavaClass(sourceFile);
-		if (!javaClass.isAbstract() && javaClass.isPublic())
-		{
-			if (!javaClass.isInterface() && javaClass.isPublic() && javaClass.isA( REMOTE_SERVICE_INTERFACE ))
-			{
-				for (JavaClass intf: javaClass.getImplementedInterfaces())
-				{
-					if (intf.isA(REMOTE_SERVICE_INTERFACE))
-					{
-						return true;
-					}
-				}
-			}
-			else
-			{
-				for (Annotation annot: javaClass.getAnnotations())
-				{
-					if ( annot.getType().getValue().equals(REST_SERVICE_ANNOTATION))
-					{
-						return true;
-					}
-				}
-			}
-		}
-		return false;
-	}
-
 	@Override
 	protected void includeChanged(String sourceFile) throws MojoExecutionException
 	{
@@ -165,7 +136,65 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 			}
 		}
 	}
+
+	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException
+	{
+		JavaClass javaClass = getJavaClass(sourceFile);
+		if (!javaClass.isAbstract() && javaClass.isPublic())
+		{
+			if (!javaClass.isInterface() && javaClass.isPublic() && javaClass.isA( REMOTE_SERVICE_INTERFACE ))
+			{
+				for (JavaClass intf: javaClass.getImplementedInterfaces())
+				{
+					if (intf.isA(REMOTE_SERVICE_INTERFACE))
+					{
+						return true;
+					}
+				}
+			}
+			else
+			{
+				for (Annotation annot: javaClass.getAnnotations())
+				{
+					if ( annot.getType().getValue().equals(REST_SERVICE_ANNOTATION))
+					{
+						return true;
+					}
+				}
+			}
+		}
+		return false;
+	}
 	
+	private void generateDpendenciesMappinfile() throws MojoExecutionException
+    {
+	    JavaCommand cmd = createJavaCommand().setMainClass(ServiceMapper.class.getCanonicalName());
+		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, false));
+
+		try
+		{
+			cmd.arg("projectDir", dependenciesGenDir.getCanonicalPath())
+			   .arg("-override")
+			   .setErr(new StreamConsumer()
+			{
+				@Override
+				public void consumeLine(String line)
+				{
+					getLog().info(line);
+				}
+			})
+			   .execute();
+		}
+		catch (JavaCommandException e)
+		{
+			throw new MojoExecutionException(e.getMessage(), e);
+		}
+		catch (IOException e)
+		{
+			throw new MojoExecutionException("Can not write files on the informed output directory", e);
+		}
+    }
+
 	private Properties getRestProperties() throws MojoExecutionException
     {
 		if (restProperties == null)
@@ -198,35 +227,6 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 			}	
 		}
 		return rpcProperties;
-    }
-
-	private void generateDpendenciesMappinfile() throws MojoExecutionException
-    {
-	    JavaCommand cmd = createJavaCommand().setMainClass(ServiceMapper.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, false));
-
-		try
-		{
-			cmd.arg("projectDir", dependenciesGenDir.getCanonicalPath())
-			   .arg("-override")
-			   .setErr(new StreamConsumer()
-			{
-				@Override
-				public void consumeLine(String line)
-				{
-					getLog().info(line);
-				}
-			})
-			   .execute();
-		}
-		catch (JavaCommandException e)
-		{
-			throw new MojoExecutionException(e.getMessage(), e);
-		}
-		catch (IOException e)
-		{
-			throw new MojoExecutionException("Can not write files on the informed output directory", e);
-		}
     }
 
 	private File getServicesInstallationDir()
