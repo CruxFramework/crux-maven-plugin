@@ -52,7 +52,8 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 	public void generateMapping() throws MojoExecutionException
 	{
 		boolean shouldProcessIncrementally = true;
-		if (!getCheckFile().exists())
+		boolean CheckFileExists = getCheckFile().exists();
+		if (!CheckFileExists)
 		{
 			shouldProcessIncrementally = generateFullMappingFile();
 		}
@@ -102,6 +103,10 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		if (hasChanges)
 		{
 			includeChanges(sources);
+			generateIncrementalMappingFile();
+		}
+		else if (!CheckFileExists && shouldProcessIncrementally)
+		{
 			generateIncrementalMappingFile();
 		}
 	}

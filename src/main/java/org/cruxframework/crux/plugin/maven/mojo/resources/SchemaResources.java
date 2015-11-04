@@ -43,7 +43,7 @@ public class SchemaResources extends AbstractScannableResourcesHandler
 
 	public SchemaResources(GenerateSchemasMojo resourcesMojo)
 	{
-		super(resourcesMojo, true, true);
+		super(resourcesMojo, false, true);
 		catalogFile = new File(getXsdOutputDir(), "crux-catalog.xml");
 	}
 	
