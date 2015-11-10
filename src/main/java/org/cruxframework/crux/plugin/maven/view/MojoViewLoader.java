@@ -51,14 +51,8 @@ public class MojoViewLoader implements ViewLoader
     }
 
 	@Override
-    public List<String> getViews(String viewsLocator)
+    public List<String> getViews()
     {
 	    return null;
-    }
-
-	@Override
-    public boolean isValidViewLocator(String useView)
-    {
-	    return false;
     }
 }
