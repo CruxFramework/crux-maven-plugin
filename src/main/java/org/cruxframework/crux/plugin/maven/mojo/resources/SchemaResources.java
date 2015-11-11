@@ -28,7 +28,7 @@ import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommandException;
 import org.cruxframework.crux.tools.schema.SchemaGenerator;
 
-import com.thoughtworks.qdox.model.Annotation;
+import com.thoughtworks.qdox.model.JavaAnnotation;
 import com.thoughtworks.qdox.model.JavaClass;
 
 /**
@@ -93,9 +93,9 @@ public class SchemaResources extends AbstractScannableResourcesHandler
 		JavaClass javaClass = getJavaClass(sourceFile);
 		if (!javaClass.isAbstract() && javaClass.isPublic() && javaClass.isA(WidgetCreator.class.getCanonicalName()))
 		{
-			for (Annotation annot: javaClass.getAnnotations())
+			for (JavaAnnotation annot: javaClass.getAnnotations())
 			{
-				if (annot.getType().getValue().equals(DECLARATIVE_FACTORY_ANNOTATION))
+				if (annot.getType().getFullyQualifiedName().equals(DECLARATIVE_FACTORY_ANNOTATION))
 				{
 					return true;
 				}

@@ -31,9 +31,9 @@ import org.cruxframework.crux.plugin.maven.shell.JavaCommandException;
 import org.cruxframework.crux.tools.servicemap.ServiceMapper;
 
 import com.google.gwt.user.client.rpc.RemoteService;
-import com.thoughtworks.qdox.model.Annotation;
+import com.thoughtworks.qdox.model.JavaAnnotation;
 import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.annotation.AnnotationConstant;
+import com.thoughtworks.qdox.model.expression.Constant;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -121,12 +121,12 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 		}
 		else
 		{
-			for (Annotation annot: javaClass.getAnnotations())
+			for (JavaAnnotation annot: javaClass.getAnnotations())
 			{
-				if ( annot.getType().getValue().equals(REST_SERVICE_ANNOTATION))
+				if ( annot.getType().getFullyQualifiedName().equals(REST_SERVICE_ANNOTATION))
 				{
 					Properties cruxRest = getRestProperties();
-					String value = (String) ((AnnotationConstant) annot.getProperty("value")).getValue();
+					String value = (String) ((Constant) annot.getProperty("value")).getValue();
 					if (cruxRest.containsKey(value))
 					{
 						throw new MojoExecutionException("Duplicated rest service [{"+value+"}].");
@@ -154,9 +154,9 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 			}
 			else
 			{
-				for (Annotation annot: javaClass.getAnnotations())
+				for (JavaAnnotation annot: javaClass.getAnnotations())
 				{
-					if ( annot.getType().getValue().equals(REST_SERVICE_ANNOTATION))
+					if ( annot.getType().getFullyQualifiedName().equals(REST_SERVICE_ANNOTATION))
 					{
 						return true;
 					}

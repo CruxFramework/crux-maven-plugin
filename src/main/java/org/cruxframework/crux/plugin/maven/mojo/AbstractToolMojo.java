@@ -32,7 +32,9 @@ import org.apache.maven.project.MavenProject;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilder;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilderException;
 
-import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.JavaProjectBuilder;
+import com.thoughtworks.qdox.library.ClassLibraryBuilder;
+import com.thoughtworks.qdox.library.SortedClassLibraryBuilder;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -55,14 +57,15 @@ public abstract class AbstractToolMojo extends AbstractMojo
 	@Parameter(defaultValue = "${project}", required = true, readonly = true)
 	private MavenProject project;	
 	
-	public JavaDocBuilder createJavaDocBuilder() throws MojoExecutionException
+	public JavaProjectBuilder createJavaProjectBuilder() throws MojoExecutionException
 	{
-		JavaDocBuilder builder = new JavaDocBuilder();
+		ClassLibraryBuilder libraryBuilder = new SortedClassLibraryBuilder(); //or OrderedClassLibraryBuilder() 
+		libraryBuilder.appendClassLoader(getProjectClassLoader(true));
+		JavaProjectBuilder builder = new JavaProjectBuilder( libraryBuilder );
 		builder.setEncoding(encoding);
-		builder.getClassLibrary().addClassLoader(getProjectClassLoader(true));
 		for (String sourceRoot : getProject().getCompileSourceRoots())
 		{
-			builder.getClassLibrary().addSourceFolder(new File(sourceRoot));
+			libraryBuilder.appendSourceFolder(new File(sourceRoot));
 		}
 		return builder;
 	}
