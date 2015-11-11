@@ -30,11 +30,11 @@ import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommandException;
 import org.cruxframework.crux.tools.widgets.LibraryMapper;
 
-import com.thoughtworks.qdox.model.Annotation;
+import com.thoughtworks.qdox.model.JavaAnnotation;
 import com.thoughtworks.qdox.model.JavaClass;
-import com.thoughtworks.qdox.model.Type;
-import com.thoughtworks.qdox.model.annotation.AnnotationConstant;
-import com.thoughtworks.qdox.model.annotation.AnnotationTypeRef;
+import com.thoughtworks.qdox.model.JavaType;
+import com.thoughtworks.qdox.model.expression.Constant;
+import com.thoughtworks.qdox.model.expression.TypeRef;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -170,9 +170,9 @@ public class LibraryResources extends AbstractScannableResourcesHandler
 		JavaClass javaClass = getJavaClass(sourceFile);
 		if (!javaClass.isAbstract() && javaClass.isPublic() && javaClass.isA(WidgetCreator.class.getCanonicalName()))
 		{
-			for (Annotation annot: javaClass.getAnnotations())
+			for (JavaAnnotation annot: javaClass.getAnnotations())
 			{
-				if (annot.getType().getValue().equals(DECLARATIVE_FACTORY_ANNOTATION))
+				if (annot.getType().getFullyQualifiedName().equals(DECLARATIVE_FACTORY_ANNOTATION))
 				{
 					return true;
 				}
@@ -184,13 +184,13 @@ public class LibraryResources extends AbstractScannableResourcesHandler
 	protected void includeChanged(String sourceFile) throws MojoExecutionException
     {
 		JavaClass javaClass = getJavaClass(sourceFile);
-		for (Annotation annot: javaClass.getAnnotations())
+		for (JavaAnnotation annot: javaClass.getAnnotations())
 		{
-			if ( annot.getType().getValue().equals(DECLARATIVE_FACTORY_ANNOTATION))
+			if ( annot.getType().getFullyQualifiedName().equals(DECLARATIVE_FACTORY_ANNOTATION))
 			{
-			    String id = (String) ((AnnotationConstant) annot.getProperty("id")).getValue();
-			    String library = (String)((AnnotationConstant) annot.getProperty("library")).getValue();
-			    Type targetWidget = ((AnnotationTypeRef) annot.getProperty("targetWidget")).getType();
+			    String id = (String) ((Constant) annot.getProperty("id")).getValue();
+			    String library = (String)((Constant) annot.getProperty("library")).getValue();
+			    JavaType targetWidget = ((TypeRef) annot.getProperty("targetWidget")).getType();
 		
 			    String widgetType = library + "_" + id;
 			    

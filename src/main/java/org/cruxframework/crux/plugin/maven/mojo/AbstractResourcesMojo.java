@@ -22,7 +22,7 @@ import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.sonatype.plexus.build.incremental.BuildContext;
 
-import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.JavaProjectBuilder;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -33,7 +33,7 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 	@Component
 	private BuildContext buildContext;
 
-	private JavaDocBuilder builder;
+	private JavaProjectBuilder builder;
 
 	/**
 	 * Location on filesystem where Crux will write generated resource files.
@@ -62,11 +62,11 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 		return buildContext;
 	}
 
-	public JavaDocBuilder getJavaDocBuilder() throws MojoExecutionException
+	public JavaProjectBuilder getJavaProjectBuilder() throws MojoExecutionException
 	{
 		if (builder == null)
 		{
-			builder = createJavaDocBuilder();
+			builder = createJavaProjectBuilder();
 		}
 		return builder;
 	}

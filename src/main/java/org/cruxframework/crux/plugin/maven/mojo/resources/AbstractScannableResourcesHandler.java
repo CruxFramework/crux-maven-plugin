@@ -30,7 +30,7 @@ import org.codehaus.plexus.util.Scanner;
 import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 
-import com.thoughtworks.qdox.JavaDocBuilder;
+import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaClass;
 
 /**
@@ -130,12 +130,12 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 	protected JavaClass getJavaClass(String sourceFile) throws MojoExecutionException
 	{
 		String className = getTopLevelClassName(sourceFile);
-		return getJavaDocBuilder().getClassByName(className);
+		return getJavaProjectBuilder().getClassByName(className);
 	}
 
-	protected JavaDocBuilder getJavaDocBuilder() throws MojoExecutionException
+	protected JavaProjectBuilder getJavaProjectBuilder() throws MojoExecutionException
 	{
-		return getResourcesMojo().getJavaDocBuilder();
+		return getResourcesMojo().getJavaProjectBuilder();
 	}
 
 	protected Scanner getScanner(File sourceRoot) throws IOException
