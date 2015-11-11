@@ -184,14 +184,17 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	
 	protected void updateWebXml() throws MojoExecutionException
 	{
-		try
+		if(targetWebXml == null || webXml.lastModified() > targetWebXml.lastModified())
 		{
-			targetWebXml.getParentFile().mkdirs();
-			FileUtils.copyFile(webXml, targetWebXml);
-		}
-		catch (IOException e)
-		{
-			throw new MojoExecutionException("Error updating web.xml file", e);
+			try
+			{
+				targetWebXml.getParentFile().mkdirs();
+				FileUtils.copyFile(webXml, targetWebXml);
+			}
+			catch (IOException e)
+			{
+				throw new MojoExecutionException("Error updating web.xml file", e);
+			}
 		}
 	}
 	
