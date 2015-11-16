@@ -52,8 +52,8 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 	public void generateMapping() throws MojoExecutionException
 	{
 		boolean shouldProcessIncrementally = true;
-		boolean CheckFileExists = getCheckFile().exists();
-		if (!CheckFileExists)
+		boolean checkFileExists = getCheckFile().exists();
+		if (!checkFileExists)
 		{
 			shouldProcessIncrementally = generateFullMappingFile();
 		}
@@ -105,7 +105,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			includeChanges(sources);
 			generateIncrementalMappingFile();
 		}
-		else if (!CheckFileExists && shouldProcessIncrementally)
+		else if (!checkFileExists && shouldProcessIncrementally)
 		{
 			generateIncrementalMappingFile();
 		}
@@ -175,7 +175,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		}
 
 		Scanner scanner = getScanner(sourceRoot);
-		scanner.setIncludes(getScannerExpressions());
+//		scanner.setIncludes(getScannerExpressions());
 		scanner.scan();
 		String[] includedSources = scanner.getIncludedFiles();
 		if (includedSources.length == 0)
