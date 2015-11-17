@@ -175,7 +175,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		}
 
 		Scanner scanner = getScanner(sourceRoot);
-//		scanner.setIncludes(getScannerExpressions());
+		scanner.setIncludes(getScannerExpressions());
 		scanner.scan();
 		String[] includedSources = scanner.getIncludedFiles();
 		if (includedSources.length == 0)
