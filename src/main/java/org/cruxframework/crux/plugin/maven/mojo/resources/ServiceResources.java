@@ -67,7 +67,7 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 	{
 		if (!depsRestMapFile.exists())
 		{
-			generateDpendenciesMappinfile();	
+			generateDependenciesMappinfile();	
 		}
 		return true;
 	}
@@ -166,11 +166,11 @@ public class ServiceResources extends AbstractScannableResourcesHandler
 		return false;
 	}
 	
-	private void generateDpendenciesMappinfile() throws MojoExecutionException
+	private void generateDependenciesMappinfile() throws MojoExecutionException
     {
 	    JavaCommand cmd = createJavaCommand().setMainClass(ServiceMapper.class.getCanonicalName());
 		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, false));
-
+		
 		try
 		{
 			cmd.arg("projectDir", dependenciesGenDir.getCanonicalPath())
