@@ -146,7 +146,6 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			DirectoryScanner dirScanner = new DirectoryScanner();
 			dirScanner.setBasedir(sourceRoot.getCanonicalPath());
 			scanner = dirScanner;
-
 		}
 		else
 		{
@@ -186,13 +185,10 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		for (String source : includedSources)
 		{
 			File sourceFile = new File(sourceRoot, source);
-			if (!getBuildContext().isUptodate(getCheckFile(), sourceFile))
+			if (!getBuildContext().isUptodate(getCheckFile(), sourceFile) && isElegibleForGeneration(source))
 			{
-				if (isElegibleForGeneration(source))
-				{
-					hasChanges = true;
-					break;
-				}
+				hasChanges = true;
+				break;
 			}
 		}
 		sources.addAll(Arrays.asList(includedSources));
