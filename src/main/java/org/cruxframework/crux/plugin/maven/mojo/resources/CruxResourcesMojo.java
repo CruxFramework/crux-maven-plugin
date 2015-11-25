@@ -39,74 +39,74 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
-	@Parameter(property = "crux.module", alias = "Module", required=true)
+	@Parameter(property = "crux.module", required=true)
 	private String module;
 
 	/**
 	 * Location on filesystem where Crux will write output files.
 	 */
-	@Parameter(property = "pages.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/", alias = "PagesOutputDirectory")
+	@Parameter(property = "pages.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/")
 	private File pagesOutputDir;
 
 	/**
 	 * The expressions used to identify service candidates on project.
 	 */
-	@Parameter(property = "crux.service.expression", alias = "ServiceExpression", defaultValue="**/*Service.java")
+	@Parameter(property = "crux.service.expression", defaultValue="**/*Service.java")
 	private String serviceExpression;
 	
 	/**
 	 * The expressions used to identify service candidates on project.
 	 */
-	@Parameter(alias = "ServiceExpressions")
+	@Parameter()
 	private String[] serviceExpressions;
 
 	/**
 	 * Location on filesystem where Crux will write service metadata files.
 	 */
-	@Parameter(property = "services.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/", alias = "ServicesOutputDirectory")
+	@Parameter(property = "services.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/")
 	private File servicesOutputDir;
 
 
 	/**
 	 * If true, plugin will automatically update META-INF/ library metadata files.
 	 */
-	@Parameter(property = "crux.sync.library.metadata", alias = "SyncLiraryMetadata", defaultValue="true")
+	@Parameter(property = "crux.sync.library.metadata", defaultValue="true")
 	private boolean syncLibraryMetadata;
 
 	/**
 	 * If true, plugin will automatically update META-INF/ service metadata files.
 	 */
-	@Parameter(property = "crux.sync.service.metadata", alias = "SyncServiceMetadata", defaultValue="true")
+	@Parameter(property = "crux.sync.service.metadata", defaultValue="true")
 	private boolean syncServiceMetadata;
 
 	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
-	@Parameter(property = "crux.targetWebXml", alias = "targetWebXml", defaultValue="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml")
+	@Parameter(property = "crux.targetWebXml", defaultValue="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml")
 	private File targetWebXml;
 
 	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
-	@Parameter(property = "crux.view.base.folder", alias = "ViewBaseFolder", defaultValue="client/view")
+	@Parameter(property = "crux.view.base.folder", defaultValue="client/view")
 	private String viewBaseFolder;
 	
 	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
-	@Parameter(property = "crux.webXml", alias = "WebXml", defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
+	@Parameter(property = "crux.webXml", defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
 	private File webXml;
 
 	/**
 	 * The expressions used to identify widgetCreator candidates on project.
 	 */
-	@Parameter(property = "crux.widget.creator.expression", alias = "WidgetCreatorExpression", defaultValue="**/rebind/**/*Factory.java")
+	@Parameter(property = "crux.widget.creator.expression", defaultValue="**/rebind/**/*Factory.java")
 	private String widgetCreatorExpression;
 
 	/**
 	 * The expressions used to identify widgetCreator candidates on project.
 	 */
-	@Parameter(alias = "WidgetCreatorExpressions")
+	@Parameter()
 	private String[] widgetCreatorExpressions;
 	
 	
