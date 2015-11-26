@@ -52,38 +52,38 @@ public class CrawlingSnapshotsMojo extends AbstractShellMojo
 	/**
 	 * Location on filesystem where Crux will write output files.
 	 */
-	@Parameter(property = "snapshots.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/WEB-INF/classes/", alias = "SnapshotsOutputDirectory")
+	@Parameter(property = "snapshots.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/WEB-INF/classes/")
 	private File snapshotsOutputDir;
 
 	/**
 	 * Time to wait for page rendering before takes the snapshot (in miliseconds).
 	 */
-	@Parameter(property = "snapshots.javascript.time", defaultValue = "2000", alias = "SnapshotsJavascriptTime")
+	@Parameter(property = "snapshots.javascript.time", defaultValue = "2000")
 	private int javascriptTime;
 	
 	/**
 	 * The port used by the internal snapshots server .
 	 */
-	@Parameter(property = "snapshots.server.port", defaultValue = "8765", alias = "SnapshotsServerPort")
+	@Parameter(property = "snapshots.server.port", defaultValue = "8765")
 	private int snapshotsServerPort;
 	
 	/**
 	 * If true, starts an embedded jetty to run the application that will be target by CrawlingTool build the HMTL snapshots.
 	 */
-	@Parameter(property = "snapshots.use.embedded.server", defaultValue = "true", alias = "SnapshotsUseEmbeddedServer")
+	@Parameter(property = "snapshots.use.embedded.server", defaultValue = "true")
 	private boolean snapshotsUseEmbeddedServer;
 
 	/**
 	 * If true, the build will be breaked when an error occurs during snapshots generation.
 	 */
-	@Parameter(property = "snapshots.stop.onerrors", defaultValue = "true", alias = "SnapshotsStopOnErrors")
+	@Parameter(property = "snapshots.stop.onerrors", defaultValue = "true")
 	private boolean stopSnapshotsOnErrors;
 	
 	
 	/**
 	 * Web application root URL.
 	 */
-	@Parameter(property = "snapshots.application.base.url", alias = "SnapshotsApplicationBaseURL")
+	@Parameter(property = "snapshots.application.base.url")
 	private String snapshotsApplicationBaseURL;
 
 	/**

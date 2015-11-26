@@ -38,13 +38,13 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 	/**
 	 * Location on filesystem where Crux will write generated resource files.
 	 */
-	@Parameter(property = "gen.resources.dir", defaultValue = "${project.build.directory}/generated-resources/crux", alias = "GenResourcesDir")
+	@Parameter(property = "gen.resources.dir", defaultValue = "${project.build.directory}/generated-resources/crux")
 	private File generatedResourcesDir;
 
 	/**
 	 * If true, override any previous mapping found.
 	 */
-	@Parameter(property = "override", defaultValue = "false", alias = "Override")
+	@Parameter(property = "override", defaultValue = "false")
 	private boolean override;
 
 	public File getGeneratedResourcesDir()

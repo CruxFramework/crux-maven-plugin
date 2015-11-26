@@ -36,25 +36,25 @@ public class GenerateSchemasMojo extends AbstractResourcesMojo
 	/**
 	 * If true generates also an HTML Documentation for the libraries.
 	 */
-	@Parameter(property = "xsd.gen.doc", defaultValue = "false", alias = "XsdGenDoc")
+	@Parameter(property = "xsd.gen.doc", defaultValue = "false")
 	private boolean generateDoc;
 
 	/**
 	 * The expressions used to identify widgetCreator candidates on project.
 	 */
-	@Parameter(property = "crux.widget.creator.expression", alias = "WidgetCreatorExpression", defaultValue="**/rebind/**/*Factory.java")
+	@Parameter(property = "crux.widget.creator.expression", defaultValue="**/rebind/**/*Factory.java")
 	private String widgetCreatorExpression;
 
 	/**
 	 * The expressions used to identify widgetCreator candidates on project.
 	 */
-	@Parameter(alias = "WidgetCreatorExpressions")
+	@Parameter()
 	private String[] widgetCreatorExpressions;
 	
 	/**
 	 * Location on filesystem where Crux will write generated resource files.
 	 */
-	@Parameter(property = "xsd.output.dir", defaultValue = "${project.build.directory}/xsd", alias = "XsdOutputDir")
+	@Parameter(property = "xsd.output.dir", defaultValue = "${project.build.directory}/xsd")
 	private File xsdOutputDir;
 
 	public void execute() throws MojoExecutionException
