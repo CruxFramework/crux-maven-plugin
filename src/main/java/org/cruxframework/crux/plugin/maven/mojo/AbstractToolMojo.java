@@ -36,7 +36,6 @@ import org.apache.maven.project.MavenProject;
 import org.codehaus.plexus.util.FileUtils;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilder;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilderException;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.library.ClassLibraryBuilder;
@@ -48,9 +47,6 @@ import com.thoughtworks.qdox.library.SortedClassLibraryBuilder;
  */
 public abstract class AbstractToolMojo extends AbstractMojo
 {
-	@Component
-	private BuildContext buildContext;
-
 	@Component(role = ClasspathBuilder.class)
 	protected ClasspathBuilder classpathBuilder;
 
@@ -202,6 +198,10 @@ public abstract class AbstractToolMojo extends AbstractMojo
 		Set<File> files = new HashSet<File>();
 		for (File sourceRoot : sourceDirs)
 		{
+			if (getLog().isDebugEnabled())
+			{
+				getLog().debug("Scanning source folder: " + sourceRoot.getCanonicalPath());
+			}
 			@SuppressWarnings("unchecked")
 			List<File> dirFiles = FileUtils.getFiles(sourceRoot, includes, excludes);
 			if (dirFiles != null)
@@ -238,8 +238,9 @@ public abstract class AbstractToolMojo extends AbstractMojo
 		return outputDirectory;
 	}
 	
-	public BuildContext getBuildContext()
+	public boolean isUptodate(File target, File source)
 	{
-		return buildContext;
-	}
+		return target != null && target.exists() && source != null && 
+			   source.exists() && target.lastModified() > source.lastModified();
+	}	
 }

@@ -16,7 +16,6 @@
 package org.cruxframework.crux.plugin.maven.mojo.resources;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -25,7 +24,6 @@ import java.util.Set;
 
 import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.DirectoryScanner;
 import org.codehaus.plexus.util.Scanner;
 import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
@@ -39,13 +37,11 @@ import com.thoughtworks.qdox.model.JavaClass;
  */
 public abstract class AbstractScannableResourcesHandler extends AbstractResourcesHandler
 {
-	private boolean fullSourcesSearch;
 	private boolean includeResources;
 
-	protected AbstractScannableResourcesHandler(AbstractResourcesMojo resourcesMojo, boolean fullSourcesSearch, boolean includeResources)
+	protected AbstractScannableResourcesHandler(AbstractResourcesMojo resourcesMojo, boolean includeResources)
 	{
 		super(resourcesMojo);
-		this.fullSourcesSearch = fullSourcesSearch;
 		this.includeResources = includeResources;
 	}
 
@@ -150,22 +146,6 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		return getResourcesMojo().getJavaProjectBuilder();
 	}
 
-	protected Scanner getScanner(File sourceRoot) throws IOException
-	{
-		Scanner scanner;
-		if (fullSourcesSearch)
-		{
-			DirectoryScanner dirScanner = new DirectoryScanner();
-			dirScanner.setBasedir(sourceRoot.getCanonicalPath());
-			scanner = dirScanner;
-		}
-		else
-		{
-			scanner = getBuildContext().newScanner(sourceRoot);
-		}
-		return scanner;
-	}
-
 	protected abstract String[] getScannerExpressions() throws MojoExecutionException;
 
 	protected String getTopLevelClassName(String sourceFile)
@@ -197,7 +177,7 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		for (String source : includedSources)
 		{
 			File sourceFile = new File(sourceRoot, source);
-			if (!getBuildContext().isUptodate(getCheckFile(), sourceFile) && isElegibleForGeneration(source))
+			if (!isUptodate(getCheckFile(), sourceFile) && isElegibleForGeneration(source))
 			{
 				if (getLog().isDebugEnabled())
 				{

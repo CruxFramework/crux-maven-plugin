@@ -16,11 +16,13 @@
 package org.cruxframework.crux.plugin.maven.mojo.resources;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.DirectoryScanner;
+import org.codehaus.plexus.util.Scanner;
 import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -33,10 +35,6 @@ public abstract class AbstractResourcesHandler
 	protected AbstractResourcesHandler(AbstractResourcesMojo resourcesMojo)
 	{
 		this.resourcesMojo = resourcesMojo;
-	}
-	protected BuildContext getBuildContext()
-	{
-		return resourcesMojo.getBuildContext();
 	}
 
 	protected File getGeneratedResourcesDir()
@@ -58,5 +56,17 @@ public abstract class AbstractResourcesHandler
     protected <T extends AbstractResourcesMojo> T getResourcesMojo()
 	{
 		return (T)resourcesMojo;
+	}
+	
+	protected Scanner getScanner(File sourceRoot) throws IOException
+	{
+		DirectoryScanner scanner = new DirectoryScanner();
+		scanner.setBasedir(sourceRoot.getCanonicalPath());
+		return scanner;
+	}
+	
+	protected boolean isUptodate(File target, File source)
+	{
+		return getResourcesMojo().isUptodate(target, source);
 	}
 }
