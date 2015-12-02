@@ -46,7 +46,6 @@ import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
-import org.codehaus.plexus.util.FileUtils;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -154,7 +153,7 @@ public class APTMojo extends AbstractToolMojo
 		Set<File> files;
 		try
 		{
-			files = getAllFiles();
+			files = getAllFiles(JAVA_FILES, null, false);
 		}
 		catch (IOException e)
 		{
@@ -285,7 +284,7 @@ public class APTMojo extends AbstractToolMojo
 		boolean hasChanges = false;
 		File checkFile = getCheckFile();
 
-		Set<File> files = getAllFiles();		
+		Set<File> files = getAllFiles(JAVA_FILES, null, false);		
 		for (File sourceFile : files)
 		{
 			allSources.add(sourceFile.getCanonicalPath());
@@ -300,31 +299,6 @@ public class APTMojo extends AbstractToolMojo
 			}
 		}
 		return hasChanges;
-	}
-
-	private Set<File> getAllFiles() throws IOException
-	{
-		Set<File> sourceDirs = new HashSet<File>();
-		final java.util.List<String> sourceRoots = getProject().getCompileSourceRoots();
-		if (sourceRoots != null)
-		{
-			for (String s : sourceRoots)
-			{
-				sourceDirs.add(new File(s));
-			}
-		}
-
-		Set<File> files = new HashSet<File>();
-		for (File sourceRoot : sourceDirs)
-		{
-			@SuppressWarnings("unchecked")
-			List<File> dirFiles = FileUtils.getFiles(sourceRoot, JAVA_FILES, null);
-			if (dirFiles != null)
-			{
-				files.addAll(dirFiles);
-			}
-		}
-		return files;
 	}
 
 	private Charset getCharset()
@@ -387,31 +361,32 @@ public class APTMojo extends AbstractToolMojo
 		return dl;
 	}
 
-	private String getLatestSupportedVersion()
+	private static String getLatestSupportedVersion()
 	{
-		switch (SourceVersion.latestSupported())
+		String JDK_VERSION = SourceVersion.latestSupported().toString();
+		switch (JDK_VERSION)
 		{
-			case RELEASE_8:
+			case "RELEASE_8":
 				return "8";
-			case RELEASE_7:
+			case "RELEASE_7":
 				return "7";
-			case RELEASE_6:
+			case "RELEASE_6":
 				return "6";
-			case RELEASE_5:
+			case "RELEASE_5":
 				return "5";
-			case RELEASE_4:
+			case "RELEASE_4":
 				return "1.4";
-			case RELEASE_3:
+			case "RELEASE_3":
 				return "1.3";
-			case RELEASE_2:
+			case "RELEASE_2":
 				return "1.2";
-			case RELEASE_1:
+			case "RELEASE_1":
 				return "1.1";
 			default:
-				return "1.0";
+				return JDK_VERSION.substring("RELEASE_".length());
 		}
 	}
-
+	
 	private List<String> getOptions(boolean incremental) throws MojoExecutionException
 	{
 		List<String> options = new ArrayList<String>(10);
