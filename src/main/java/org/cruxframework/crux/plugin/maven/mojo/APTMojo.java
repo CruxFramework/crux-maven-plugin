@@ -368,20 +368,20 @@ public class APTMojo extends AbstractToolMojo
 
 				if (Kind.ERROR == kind)
 				{
-					getLog().error(String.format("diagnostic: %s", diagnostic));
+					getLog().error(String.format("APT: %s", diagnostic));
 				}
 				else if (Kind.MANDATORY_WARNING == kind || Kind.WARNING == kind)
 				{
-					getLog().warn(String.format("diagnostic: %s", diagnostic));
+					getLog().warn(String.format("APT: %s", diagnostic));
 				}
 				else if (Kind.NOTE == kind)
 				{
-					getLog().info(String.format("diagnostic: %s", diagnostic));
+					getLog().info(String.format("APT: %s", diagnostic));
 				}
 				else if (Kind.OTHER == kind)
 				{
 
-					getLog().info(String.format("diagnostic: %s", diagnostic));
+					getLog().info(String.format("APT: %s", diagnostic));
 				}
 			}
 		};
