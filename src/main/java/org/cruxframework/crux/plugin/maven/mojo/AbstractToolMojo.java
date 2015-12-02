@@ -16,19 +16,24 @@
 package org.cruxframework.crux.plugin.maven.mojo;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.plexus.util.FileUtils;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilder;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilderException;
 import org.sonatype.plexus.build.incremental.BuildContext;
@@ -170,6 +175,43 @@ public abstract class AbstractToolMojo extends AbstractMojo
 		return new URLClassLoader(getClassPathURLs(addSources), ClassLoader.getSystemClassLoader());
 	}
 
+	public Set<File> getAllFiles(String includes, String excludes, boolean includeResources) throws IOException
+	{
+		Set<File> sourceDirs = new HashSet<File>();
+		final java.util.List<String> sourceRoots = getProject().getCompileSourceRoots();
+		if (sourceRoots != null)
+		{
+			for (String s : sourceRoots)
+			{
+				sourceDirs.add(new File(s));
+			}
+		}
+		
+		if(includeResources)
+		{
+			List<Resource> resources = getProject().getResources();
+			if (resources != null)
+			{
+				for (Resource resource : resources)
+				{
+					sourceDirs.add(new File(resource.getDirectory()));
+				}
+			}
+		}
+
+		Set<File> files = new HashSet<File>();
+		for (File sourceRoot : sourceDirs)
+		{
+			@SuppressWarnings("unchecked")
+			List<File> dirFiles = FileUtils.getFiles(sourceRoot, includes, excludes);
+			if (dirFiles != null)
+			{
+				files.addAll(dirFiles);
+			}
+		}
+		return files;
+	}
+	
 	/**
 	 * Whether to use processed resources and compiled classes ({@code false}), or raw resources ({@code true }).
 	 */

@@ -18,12 +18,10 @@ package org.cruxframework.crux.plugin.maven.mojo.resources;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.codehaus.plexus.util.Scanner;
 import org.cruxframework.crux.core.declarativeui.ViewProcessor;
 import org.cruxframework.crux.plugin.maven.view.MojoViewLoader;
 import org.w3c.dom.Document;
@@ -41,32 +39,38 @@ public class PageResources extends AbstractResourcesHandler
 	
 	protected void generatePages() throws MojoExecutionException
 	{
-		List<String> sourceRoots = getProject().getCompileSourceRoots();
-		for (String sourceRoot : sourceRoots)
+		Set<File> sources;
+		try
 		{
-			try
+			sources = getResourcesMojo().getAllFiles("**/*.crux.xml", null, true);
+			
+			if (sources.size() == 0)
 			{
-				scanAndGeneratePages(new File(sourceRoot));
+				return;
 			}
-			catch (Exception e)
+			
+			for (File sourceFile : sources)
 			{
-				throw new MojoExecutionException("Failed to generate HTML file", e);
+				String viewId = getViewId(sourceFile.getCanonicalPath());
+				if (!StringUtils.isEmpty(viewId))
+				{
+					File targetFile = getTargetFile(viewId);
+					if (getBuildContext().isUptodate(targetFile, sourceFile))
+					{
+						getLog().debug(targetFile.getAbsolutePath() + " is up to date. Generation skipped");
+						continue;
+					}
+					
+					getLog().info("Generating HTML page for file " + sourceFile.getCanonicalPath());
+					targetFile.getParentFile().mkdirs();
+					generateHTMLPage(viewId, sourceFile, targetFile);
+				}
 			}
 		}
-		
-		List<Resource> resources = getProject().getResources();
-		for (Resource resource : resources)
-        {
-			try
-			{
-				scanAndGeneratePages(new File(resource.getDirectory()));
-			}
-			catch (Exception e)
-			{
-				throw new MojoExecutionException("Failed to generate HTML file", e);
-			}
-	        
-        }
+		catch (Exception e)
+		{
+			throw new MojoExecutionException("Error generating pages.", e);
+		}
 	}
 
 	protected String getModuleBaseFolder()
@@ -120,40 +124,4 @@ public class PageResources extends AbstractResourcesHandler
 		
 		return null;
     }
-
-	private void scanAndGeneratePages(File sourceRoot) throws Exception
-	{
-		if (getLog().isDebugEnabled())
-		{
-			getLog().debug("Scanning source folder: "+sourceRoot.getCanonicalPath());
-		}
-
-		
-		Scanner scanner = getBuildContext().newScanner(sourceRoot);
-		scanner.setIncludes(new String[] { "**/*.crux.xml" });
-		scanner.scan();
-		String[] sources = scanner.getIncludedFiles();
-		if (sources.length == 0)
-		{
-			return;
-		}
-		for (String source : sources)
-		{
-			File sourceFile = new File(sourceRoot, source);
-			String viewId = getViewId(source);
-			if (!StringUtils.isEmpty(viewId))
-			{
-				File targetFile = getTargetFile(viewId);
-				if (getBuildContext().isUptodate(targetFile, sourceFile))
-				{
-					getLog().debug(targetFile.getAbsolutePath() + " is up to date. Generation skipped");
-					continue;
-				}
-				
-				getLog().info("Generating HTML page for file " + source);
-				targetFile.getParentFile().mkdirs();
-				generateHTMLPage(viewId, sourceFile, targetFile);
-			}
-		}
-	}
 }
