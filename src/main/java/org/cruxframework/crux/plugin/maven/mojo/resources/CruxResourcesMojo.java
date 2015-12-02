@@ -49,37 +49,6 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	private File pagesOutputDir;
 
 	/**
-	 * The expressions used to identify service candidates on project.
-	 */
-	@Parameter(property = "crux.service.expression", defaultValue="**/*Service.java")
-	private String serviceExpression;
-	
-	/**
-	 * The expressions used to identify service candidates on project.
-	 */
-	@Parameter()
-	private String[] serviceExpressions;
-
-	/**
-	 * Location on filesystem where Crux will write service metadata files.
-	 */
-	@Parameter(property = "services.output.dir", defaultValue = "${project.build.directory}/${project.build.finalName}/")
-	private File servicesOutputDir;
-
-
-	/**
-	 * If true, plugin will automatically update META-INF/ library metadata files.
-	 */
-	@Parameter(property = "crux.sync.library.metadata", defaultValue="true")
-	private boolean syncLibraryMetadata;
-
-	/**
-	 * If true, plugin will automatically update META-INF/ service metadata files.
-	 */
-	@Parameter(property = "crux.sync.service.metadata", defaultValue="true")
-	private boolean syncServiceMetadata;
-
-	/**
 	 * The name of the module that contains the crux pages to be processed.
 	 */
 	@Parameter(property = "crux.targetWebXml", defaultValue="${project.build.directory}/${project.build.finalName}/WEB-INF/web.xml")
@@ -97,19 +66,6 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 	@Parameter(property = "crux.webXml", defaultValue="${basedir}/src/main/webapp/WEB-INF/web.xml")
 	private File webXml;
 
-	/**
-	 * The expressions used to identify widgetCreator candidates on project.
-	 */
-	@Parameter(property = "crux.widget.creator.expression", defaultValue="**/rebind/**/*Factory.java")
-	private String widgetCreatorExpression;
-
-	/**
-	 * The expressions used to identify widgetCreator candidates on project.
-	 */
-	@Parameter()
-	private String[] widgetCreatorExpressions;
-	
-	
 	public void execute() throws MojoExecutionException
 	{
 		if ("pom".equals(getProject().getPackaging()))
@@ -125,17 +81,6 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 
 		PageResources pageResources = new PageResources(this); 
 		pageResources.generatePages();
-
-		if (syncLibraryMetadata)
-		{
-			LibraryResources libraryResources = new LibraryResources(this);
-			libraryResources.generateMapping();
-		}
-		if (syncServiceMetadata)
-		{
-			ServiceResources serviceResources = new ServiceResources(this);
-			serviceResources.generateMapping();
-		}
 	}
 
 	@Override
@@ -154,32 +99,9 @@ public class CruxResourcesMojo extends AbstractResourcesMojo
 		return pagesOutputDir;
 	}
 	
-	protected String[] getServiceExpression()
-	{
-		if (serviceExpressions == null)
-		{
-			serviceExpressions = new String[]{serviceExpression};
-		}
-		return serviceExpressions;
-	}
-
-	protected File getServicesOuputDir()
-	{
-		return servicesOutputDir;
-	}
-
 	protected String getViewBaseFolder()
 	{
 		return viewBaseFolder;
-	}
-	
-	protected String[] getWidgetCreatorExpression()
-	{
-		if (widgetCreatorExpressions == null)
-		{
-			widgetCreatorExpressions = new String[]{widgetCreatorExpression};
-		}
-		return widgetCreatorExpressions;
 	}
 	
 	protected void updateWebXml() throws MojoExecutionException

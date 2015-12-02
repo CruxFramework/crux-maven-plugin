@@ -18,9 +18,7 @@ package org.cruxframework.crux.plugin.maven.mojo;
 import java.io.File;
 
 import org.apache.maven.plugin.MojoExecutionException;
-import org.apache.maven.plugins.annotations.Component;
 import org.apache.maven.plugins.annotations.Parameter;
-import org.sonatype.plexus.build.incremental.BuildContext;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 
@@ -30,9 +28,6 @@ import com.thoughtworks.qdox.JavaProjectBuilder;
  */
 public abstract class AbstractResourcesMojo extends AbstractShellMojo
 {
-	@Component
-	private BuildContext buildContext;
-
 	private JavaProjectBuilder builder;
 
 	/**
@@ -55,11 +50,6 @@ public abstract class AbstractResourcesMojo extends AbstractShellMojo
 	public boolean isOverride()
 	{
 		return override;
-	}
-
-	public BuildContext getBuildContext()
-	{
-		return buildContext;
 	}
 
 	public JavaProjectBuilder getJavaProjectBuilder() throws MojoExecutionException
