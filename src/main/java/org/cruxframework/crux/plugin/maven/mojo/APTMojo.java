@@ -47,7 +47,6 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.FileUtils;
-import org.codehaus.plexus.util.Scanner;
 import org.codehaus.plexus.util.StringUtils;
 
 /**
@@ -79,7 +78,10 @@ public class APTMojo extends AbstractToolMojo
 		setupGenerateDirectory();
 
 		Set<String> newSourceFiles = process();
-		updateReportFile(newSourceFiles);
+		if (newSourceFiles != null) // changed
+		{
+			updateReportFile(newSourceFiles);
+		}
 		
 		long after = System.currentTimeMillis();
 
@@ -139,6 +141,10 @@ public class APTMojo extends AbstractToolMojo
 		else if (hasChanges)
 		{
 			runAPT(modifiedSources, true);
+		}
+		else
+		{
+			return null;
 		}
 		return allSources;
     }
@@ -276,19 +282,12 @@ public class APTMojo extends AbstractToolMojo
 			getLog().debug("Scanning source folder: " + sourceRoot.getCanonicalPath());
 		}
 
-		Scanner scanner = getBuildContext().newScanner(sourceRoot, true);
-		scanner.setIncludes(new String[]{JAVA_FILES});
-		scanner.scan();
-		String[] includedSources = scanner.getIncludedFiles();
-		if (includedSources.length == 0)
-		{
-			return false;
-		}
 		boolean hasChanges = false;
 		File checkFile = getCheckFile();
-		for (String source : includedSources)
+
+		Set<File> files = getAllFiles();		
+		for (File sourceFile : files)
 		{
-			File sourceFile = new File(sourceRoot, source);
 			allSources.add(sourceFile.getCanonicalPath());
 			if (!getBuildContext().isUptodate(checkFile, sourceFile))
 			{
