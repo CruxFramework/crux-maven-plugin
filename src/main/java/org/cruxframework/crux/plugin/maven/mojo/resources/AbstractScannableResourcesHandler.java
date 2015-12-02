@@ -55,6 +55,10 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		boolean checkFileExists = getCheckFile().exists();
 		if (!checkFileExists)
 		{
+			if (getLog().isDebugEnabled())
+			{
+				getLog().debug("Running Full mapping...");
+			}
 			shouldProcessIncrementally = generateFullMappingFile();
 		}
 
@@ -103,10 +107,18 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 		if (hasChanges)
 		{
 			includeChanges(sources);
+			if (getLog().isDebugEnabled())
+			{
+				getLog().debug("Running Incremental mapping...");
+			}
 			generateIncrementalMappingFile();
 		}
 		else if (!checkFileExists && shouldProcessIncrementally)
 		{
+			if (getLog().isDebugEnabled())
+			{
+				getLog().debug("Running Incremental mapping...");
+			}
 			generateIncrementalMappingFile();
 		}
 	}
@@ -187,6 +199,10 @@ public abstract class AbstractScannableResourcesHandler extends AbstractResource
 			File sourceFile = new File(sourceRoot, source);
 			if (!getBuildContext().isUptodate(getCheckFile(), sourceFile) && isElegibleForGeneration(source))
 			{
+				if (getLog().isDebugEnabled())
+				{
+					getLog().debug("Modified file found: " + sourceFile.getCanonicalPath() + " is newer than " + getCheckFile().getCanonicalPath());
+				}
 				hasChanges = true;
 				break;
 			}

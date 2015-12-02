@@ -31,6 +31,7 @@ import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilder;
 import org.cruxframework.crux.plugin.maven.ClasspathBuilderException;
+import org.sonatype.plexus.build.incremental.BuildContext;
 
 import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.library.ClassLibraryBuilder;
@@ -42,15 +43,27 @@ import com.thoughtworks.qdox.library.SortedClassLibraryBuilder;
  */
 public abstract class AbstractToolMojo extends AbstractMojo
 {
+	@Component
+	private BuildContext buildContext;
+
 	@Component(role = ClasspathBuilder.class)
 	protected ClasspathBuilder classpathBuilder;
 
 	@Parameter(property = "project.build.sourceEncoding", defaultValue="${project.build.sourceEncoding}")
     private String encoding;
 
+	/**
+	 * Location on filesystem where Crux will write generated resource files.
+	 */
+	@Parameter(property = "gen.sources.dir", defaultValue = "${project.build.directory}/generated-sources/crux")
+	private File generatedSourcesDir;
+
 	@Parameter(defaultValue = "${plugin.artifactMap}", required = true, readonly = true)
 	private Map<String, Artifact> pluginArtifactMap;
 
+	@Parameter( defaultValue="${project.build.outputDirectory}")
+	private File outputDirectory;	
+	
 	/**
 	 * The maven project descriptor
 	 */
@@ -98,31 +111,7 @@ public abstract class AbstractToolMojo extends AbstractMojo
 			throw new MojoExecutionException(e.getMessage(), e);
 		}
 	}
-	
-	public MavenProject getProject()
-	{
-		return project;
-	}
 
-	public Set<Artifact> getProjectArtifacts()
-	{
-		if (getLog().isDebugEnabled())
-		{
-			getLog().debug("Project Artifacts:");
-			for (Artifact a : project.getArtifacts())
-			{
-				getLog().debug("   " + a.getArtifactId());
-			}
-		}
-
-		return project.getArtifacts();
-	}
-
-	public ClassLoader getProjectClassLoader(boolean addSources) throws MojoExecutionException
-	{
-		return new URLClassLoader(getClassPathURLs(addSources), ClassLoader.getSystemClassLoader());
-	}
-	
 	public URL[] getClassPathURLs(boolean addSources) throws MojoExecutionException
 	{
 		Collection<File> classpath = getClasspath(Artifact.SCOPE_COMPILE, addSources);
@@ -142,6 +131,44 @@ public abstract class AbstractToolMojo extends AbstractMojo
 		}
 		return urls;
 	}
+	
+	public String getEncoding()
+	{
+		return encoding;
+	}
+
+	/**
+	 * Retrieve the folder where generated sources will be placed.
+	 * @return generated dource dir
+	 */
+	public File getGeneratedSourcesDir()
+	{
+		return generatedSourcesDir;
+	}
+
+	public MavenProject getProject()
+	{
+		return project;
+	}
+
+	public Set<Artifact> getProjectArtifacts()
+	{
+		if (getLog().isDebugEnabled())
+		{
+			getLog().debug("Project Artifacts:");
+			for (Artifact a : project.getArtifacts())
+			{
+				getLog().debug("   " + a.getArtifactId());
+			}
+		}
+
+		return project.getArtifacts();
+	}
+	
+	public ClassLoader getProjectClassLoader(boolean addSources) throws MojoExecutionException
+	{
+		return new URLClassLoader(getClassPathURLs(addSources), ClassLoader.getSystemClassLoader());
+	}
 
 	/**
 	 * Whether to use processed resources and compiled classes ({@code false}), or raw resources ({@code true }).
@@ -149,5 +176,28 @@ public abstract class AbstractToolMojo extends AbstractMojo
 	public boolean isGenerator()
 	{
 		return false;
+	}
+	
+	protected File setupGenerateDirectory()
+	{
+		if (!getGeneratedSourcesDir().exists())
+		{
+			getLog().debug("Creating target directory " + getGeneratedSourcesDir().getAbsolutePath());
+			getGeneratedSourcesDir().mkdirs();
+		}
+		getLog().debug("Add compile source root " + getGeneratedSourcesDir().getAbsolutePath());
+
+		getProject().addCompileSourceRoot(getGeneratedSourcesDir().getAbsolutePath());
+		return getGeneratedSourcesDir();
+	}
+	
+	protected File getOutputDirectory()
+	{
+		return outputDirectory;
+	}
+	
+	public BuildContext getBuildContext()
+	{
+		return buildContext;
 	}
 }
