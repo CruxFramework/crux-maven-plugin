@@ -18,9 +18,12 @@ package org.cruxframework.crux.plugin.maven.mojo.resources;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.model.Resource;
 import org.apache.maven.plugin.MojoExecutionException;
+import org.codehaus.plexus.util.Scanner;
 import org.codehaus.plexus.util.cli.StreamConsumer;
 import org.cruxframework.crux.core.rebind.screen.widget.WidgetCreator;
 import org.cruxframework.crux.core.rebind.screen.widget.declarative.DeclarativeFactory;
@@ -28,6 +31,7 @@ import org.cruxframework.crux.plugin.maven.shell.JavaCommand;
 import org.cruxframework.crux.plugin.maven.shell.JavaCommandException;
 import org.cruxframework.crux.tools.schema.SchemaGenerator;
 
+import com.thoughtworks.qdox.JavaProjectBuilder;
 import com.thoughtworks.qdox.model.JavaAnnotation;
 import com.thoughtworks.qdox.model.JavaClass;
 
@@ -35,7 +39,7 @@ import com.thoughtworks.qdox.model.JavaClass;
  * @author Thiago da Rosa de Bustamante
  * 
  */
-public class SchemaResources extends AbstractScannableResourcesHandler
+public class SchemaResources extends AbstractResourcesHandler
 {
 	private static final String DECLARATIVE_FACTORY_ANNOTATION = DeclarativeFactory.class.getCanonicalName();
 	
@@ -43,72 +47,63 @@ public class SchemaResources extends AbstractScannableResourcesHandler
 
 	public SchemaResources(GenerateSchemasMojo resourcesMojo)
 	{
-		super(resourcesMojo, true);
+		super(resourcesMojo);
 		catalogFile = new File(getXsdOutputDir(), "crux-catalog.xml");
 	}
 	
-	@Override
-	protected boolean generateFullMappingFile() throws MojoExecutionException
+	public void generateMapping() throws MojoExecutionException
 	{
-		if (!catalogFile.exists())
+		boolean checkFileExists = getCheckFile().exists();
+		if (!checkFileExists)
 		{
 			generateSchemas();
-			return false;
+			return;
 		}
-		return true;
-	}
-	
-	@Override
-	protected void generateIncrementalMappingFile() throws MojoExecutionException
-	{
-		generateSchemas();
-	}
-	@Override
-	protected File getCheckFile() throws MojoExecutionException
-	{
-	    return catalogFile;
-	}
 
-	protected String[] getScannerExpressions() throws MojoExecutionException
-	{
-		GenerateSchemasMojo resourcesMojo = getResourcesMojo();
-		String[] expressions = resourcesMojo.getWidgetCreatorExpression();
-		expressions = Arrays.copyOf(expressions, expressions.length+1);
-		expressions[expressions.length-1] = "**/*.template.xml";
-		return expressions;
-	}
-
-	protected void includeChanged(String sourceFile) throws MojoExecutionException
-    {
-		// Nothing to do. We perform a full rebuild for schemas
-    }
-
-	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException
-	{
-		if (sourceFile.endsWith(".template.xml"))
+		boolean hasChanges = false;
+		List<String> sourceRoots = getProject().getCompileSourceRoots();
+		for (String sourceRoot : sourceRoots)
 		{
-			return true;
-		}
-		
-		JavaClass javaClass = getJavaClass(sourceFile);
-		if (!javaClass.isAbstract() && javaClass.isPublic() && javaClass.isA(WidgetCreator.class.getCanonicalName()))
-		{
-			for (JavaAnnotation annot: javaClass.getAnnotations())
+			try
 			{
-				if (annot.getType().getFullyQualifiedName().equals(DECLARATIVE_FACTORY_ANNOTATION))
+				if (hasChanges(new File(sourceRoot)))
 				{
-					return true;
+					hasChanges = true;
 				}
 			}
+			catch (Exception e)
+			{
+				throw new MojoExecutionException("Failed to generate mapping files", e);
+			}
 		}
-		return false;
+		List<Resource> resources = getProject().getResources();
+
+		for (Resource resource : resources)
+		{
+			try
+			{
+				if (hasChanges(new File(resource.getDirectory())))
+				{
+					hasChanges = true;
+				}
+			}
+			catch (Exception e)
+			{
+				throw new MojoExecutionException("Failed to generate mapping files", e);
+			}
+		}
+
+		if (hasChanges)
+		{
+			generateSchemas();
+		}
 	}
 	
-	private void generateSchemas() throws MojoExecutionException
+	protected void generateSchemas() throws MojoExecutionException
 	{
 		getLog().info("Generating XSD files...");
-		JavaCommand cmd = createJavaCommand().setMainClass(SchemaGenerator.class.getCanonicalName());
-		cmd.addToClasspath(getClasspath(Artifact.SCOPE_COMPILE, true));
+		JavaCommand cmd = getResourcesMojo().createJavaCommand().setMainClass(SchemaGenerator.class.getCanonicalName());
+		cmd.addToClasspath(getResourcesMojo().getClasspath(Artifact.SCOPE_COMPILE, true));
 		cmd.addToClasspath(new File(getProject().getBuild().getOutputDirectory()));
 		
 		try
@@ -140,13 +135,92 @@ public class SchemaResources extends AbstractScannableResourcesHandler
 		}
 	}
 
-	private File getXsdOutputDir()
+	protected File getCheckFile() throws MojoExecutionException
+	{
+	    return catalogFile;
+	}
+
+	protected JavaClass getJavaClass(String sourceFile) throws MojoExecutionException
+	{
+		String className = getTopLevelClassName(sourceFile);
+		return getJavaProjectBuilder().getClassByName(className);
+	}
+
+	protected JavaProjectBuilder getJavaProjectBuilder() throws MojoExecutionException
+	{
+		return getResourcesMojo().getJavaProjectBuilder();
+	}
+	
+	protected String[] getScannerExpressions() throws MojoExecutionException
+	{
+		GenerateSchemasMojo resourcesMojo = getResourcesMojo();
+		String[] expressions = resourcesMojo.getWidgetCreatorExpression();
+		expressions = Arrays.copyOf(expressions, expressions.length+1);
+		expressions[expressions.length-1] = "**/*.template.xml";
+		return expressions;
+	}
+
+	protected String getTopLevelClassName(String sourceFile)
+	{
+		String className = sourceFile.substring(0, sourceFile.length() - 5); // strip ".java"
+		return className.replace(File.separatorChar, '.');
+	}
+
+	protected File getXsdOutputDir()
     {
 		GenerateSchemasMojo resourcesMojo = getResourcesMojo();
 	    return resourcesMojo.getXsdOutputDir();
     }
 
-	private boolean isGenerateDoc()
+	protected boolean hasChanges(File sourceRoot) throws Exception
+	{
+		Scanner scanner = getScanner(sourceRoot);
+		scanner.setIncludes(getScannerExpressions());
+		scanner.scan();
+		String[] includedSources = scanner.getIncludedFiles();
+		if (includedSources.length == 0)
+		{
+			return false;
+		}
+		boolean hasChanges = false;
+		for (String source : includedSources)
+		{
+			File sourceFile = new File(sourceRoot, source);
+			if (!isUptodate(getCheckFile(), sourceFile) && isElegibleForGeneration(source))
+			{
+				if (getLog().isDebugEnabled())
+				{
+					getLog().debug("Modified file found: " + sourceFile.getCanonicalPath() + " is newer than " + getCheckFile().getCanonicalPath());
+				}
+				hasChanges = true;
+				break;
+			}
+		}
+		return hasChanges;
+	}
+
+	protected boolean isElegibleForGeneration(String sourceFile) throws MojoExecutionException
+	{
+		if (sourceFile.endsWith(".template.xml"))
+		{
+			return true;
+		}
+		
+		JavaClass javaClass = getJavaClass(sourceFile);
+		if (!javaClass.isAbstract() && javaClass.isPublic() && javaClass.isA(WidgetCreator.class.getCanonicalName()))
+		{
+			for (JavaAnnotation annot: javaClass.getAnnotations())
+			{
+				if (annot.getType().getFullyQualifiedName().equals(DECLARATIVE_FACTORY_ANNOTATION))
+				{
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	protected boolean isGenerateDoc()
     {
 		GenerateSchemasMojo resourcesMojo = getResourcesMojo();
 	    return resourcesMojo.isGenerateDoc();
