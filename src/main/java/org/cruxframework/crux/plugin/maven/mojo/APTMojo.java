@@ -115,22 +115,11 @@ public class APTMojo extends AbstractToolMojo
 		Set<File> modifiedSources = new HashSet<File>();
 		Set<String> allSources = new HashSet<String>();
 
-		List<String> sourceRoots = getProject().getCompileSourceRoots();
-		for (String sourceRoot : sourceRoots)
+		if (scanModifiedSourceFiles(modifiedSources, allSources))
 		{
-			try
-			{
-				File sourceRootFile = new File(sourceRoot);
-				if (scanModifiedSourceFiles(sourceRootFile, modifiedSources, allSources))
-				{
-					hasChanges = true;
-				}
-			}
-			catch (Exception e)
-			{
-				throw new MojoExecutionException("Failed to generate mapping files", e);
-			}
+			hasChanges = true;
 		}
+
 		List<String> previousSourceFiles = getPreviousSourceFiles();
 
 		if (!incremental || hasDeletedResources(allSources, previousSourceFiles))
@@ -274,33 +263,35 @@ public class APTMojo extends AbstractToolMojo
 		return false;
 	}
 
-	protected boolean scanModifiedSourceFiles(File sourceRoot, Set<File> sources, Set<String> allSources) throws Exception
+	protected boolean scanModifiedSourceFiles(Set<File> modifiedSources, Set<String> allSources) throws MojoExecutionException
 	{
-		if (getLog().isDebugEnabled())
+		try
 		{
-			getLog().debug("Scanning source folder: " + sourceRoot.getCanonicalPath());
-		}
+			boolean hasChanges = false;
+			File checkFile = getCheckFile();
 
-		boolean hasChanges = false;
-		File checkFile = getCheckFile();
-
-		Set<File> files = getAllFiles(JAVA_FILES, null, false);		
-		for (File sourceFile : files)
-		{
-			allSources.add(sourceFile.getCanonicalPath());
-			if (!getBuildContext().isUptodate(checkFile, sourceFile))
+			Set<File> files = getAllFiles(JAVA_FILES, null, false);		
+			for (File sourceFile : files)
 			{
-				if (getLog().isDebugEnabled())
+				allSources.add(sourceFile.getCanonicalPath());
+				if (!isUptodate(checkFile, sourceFile))
 				{
-					getLog().debug("Modified file found: " + sourceFile.getCanonicalPath() + " is newer than " + checkFile.getCanonicalPath());
+					if (getLog().isDebugEnabled())
+					{
+						getLog().debug("Modified file found: " + sourceFile.getCanonicalPath() + " is newer than " + checkFile.getCanonicalPath());
+					}
+					hasChanges = true;
+					modifiedSources.add(sourceFile);
 				}
-				hasChanges = true;
-				sources.add(sourceFile);
 			}
+			return hasChanges;
 		}
-		return hasChanges;
+		catch (Exception e)
+		{
+			throw new MojoExecutionException("Failed to generate mapping files", e);
+		}
 	}
-
+	
 	private Charset getCharset()
 	{
 		Charset charset = null;
