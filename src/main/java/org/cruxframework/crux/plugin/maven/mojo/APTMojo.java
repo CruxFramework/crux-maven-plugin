@@ -319,7 +319,7 @@ public class APTMojo extends AbstractToolMojo
 
 	private File getCheckFile()
     {
-		return new File(getProject().getBuild().getDirectory(), "crux-plugin/report");
+		return new File(getProject().getBuild().getOutputDirectory(), "META-INF/crux-plugin/report");
     }
 
 	private DiagnosticListener<JavaFileObject> getDiagnosticListener()
