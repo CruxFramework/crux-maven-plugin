@@ -33,7 +33,7 @@ import org.cruxframework.crux.plugin.maven.mojo.AbstractResourcesMojo;
  * @author Thiago da Rosa de Bustamante
  */
 @Mojo(name = "process-crux-resources", defaultPhase = LifecyclePhase.COMPILE, 
-requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
+	requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class CruxResourcesMojo extends AbstractResourcesMojo
 {
 	/**
