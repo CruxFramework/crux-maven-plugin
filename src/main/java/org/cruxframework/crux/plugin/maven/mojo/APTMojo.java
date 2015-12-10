@@ -47,6 +47,9 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.plugins.annotations.ResolutionScope;
 import org.codehaus.plexus.util.StringUtils;
+import org.cruxframework.crux.core.annotation.processor.CruxAnnotationProcessor;
+import org.cruxframework.crux.core.annotation.processor.RestServiceProcessor;
+import org.cruxframework.crux.tools.annotation.processor.LibraryProcessor;
 
 /**
  * @author Thiago da Rosa de Bustamante
@@ -187,6 +190,11 @@ public class APTMojo extends AbstractToolMojo
 
 		if (getLog().isDebugEnabled())
 		{
+			for (JavaFileObject source : allSources)
+			{
+				getLog().debug(String.format("compilation source: %s", source.getName()));
+			}
+			
 			for (String option : options)
 			{
 				getLog().debug(String.format("javac option: %s", option));
@@ -194,12 +202,22 @@ public class APTMojo extends AbstractToolMojo
 		}
 
 		CompilationTask task = compiler.getTask(new PrintWriter(System.out), fileManager, dl, options, null, allSources);
+		
+		task.setProcessors(getProcessors());
 
 		// Perform the compilation task.
 		if (!task.call())
 		{
 			throw new MojoExecutionException("error during compilation");
 		}
+	}
+
+	private ArrayList<CruxAnnotationProcessor> getProcessors()
+	{
+		ArrayList<CruxAnnotationProcessor> processors = new ArrayList<CruxAnnotationProcessor>();
+		processors.add(new RestServiceProcessor());
+		processors.add(new LibraryProcessor());
+		return processors;
 	}
 
 	protected List<String> getPreviousSourceFiles() throws MojoExecutionException
@@ -398,8 +416,10 @@ public class APTMojo extends AbstractToolMojo
 
 		if (incremental)
 		{
-			options.add("-ACrux.apt.incremental=true");
+			options.add("-A"+CruxAnnotationProcessor.CRUX_APT_INCREMENTAL+"=true");
 		}
+		
+		options.add("-A"+CruxAnnotationProcessor.CRUX_RUN_APT+"=true");
 		
 		options.add("-d");
 		options.add(getOutputDirectory().getPath());
