@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cruxframework.plugin</groupId>
 	<artifactId>crux-maven-plugin</artifactId>
-	<version>5.4-SNAPSHOT</version>
+	<version>5.5-SNAPSHOT</version>
 	<name>Crux Maven Plugin</name>
 	<packaging>maven-plugin</packaging>
 
@@ -17,7 +17,7 @@
 	    <maven.version>3.0.5</maven.version>
 		<maven.plugin.version>3.4</maven.plugin.version>
 		<gwt.version>2.7.0</gwt.version>
-		<crux.version>5.4-SNAPSHOT</crux.version>
+		<crux.version>5.5-SNAPSHOT</crux.version>
 	</properties>
 
 	<prerequisites>
@@ -46,21 +46,11 @@
 			<version>${maven.plugin.version}</version>
 			<scope>provided</scope>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 			<groupId>com.thoughtworks.qdox</groupId> -->
-<!-- 			<artifactId>qdox</artifactId> -->
-<!-- 			<version>1.12.1</version> -->
-<!-- 		</dependency> -->
 		<dependency>
 		    <groupId>com.thoughtworks.qdox</groupId>
 			<artifactId>qdox</artifactId>
 			<version>2.0-M3</version>
 		</dependency>
-<!-- 		<dependency> -->
-<!-- 		    <groupId>com.github.javaparser</groupId> -->
-<!-- 		    <artifactId>javaparser-core</artifactId> -->
-<!-- 		    <version>2.2.2</version> -->
-<!-- 		</dependency> -->
 	</dependencies>
 
 	<build>
