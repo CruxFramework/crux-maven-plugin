@@ -55,7 +55,7 @@ import org.cruxframework.crux.tools.annotation.processor.LibraryProcessor;
  * @author Thiago da Rosa de Bustamante
  *
  */
-@Mojo(name = "apt", defaultPhase = LifecyclePhase.GENERATE_SOURCES, 
+@Mojo(name = "apt", defaultPhase = LifecyclePhase.COMPILE, 
 		requiresDependencyResolution = ResolutionScope.COMPILE, threadSafe = true)
 public class APTMojo extends AbstractToolMojo
 {
