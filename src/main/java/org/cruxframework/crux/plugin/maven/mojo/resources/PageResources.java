@@ -92,7 +92,7 @@ public class PageResources extends AbstractResourcesHandler
 		ViewProcessor viewProcessor = new ViewProcessor(new MojoViewLoader());
 		Document view = viewProcessor.getView(new FileInputStream(sourceFile), viewId, null);
 		FileOutputStream out = new FileOutputStream(targetFile);
-		viewProcessor.generateHTML(viewId, view, out);
+		viewProcessor.generateHTML(viewId, null, view, out);
 		out.close();
 		return true;
 	}
