@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.cruxframework.plugin</groupId>
 	<artifactId>crux-maven-plugin</artifactId>
-	<version>5.4.1-SNAPSHOT</version>
+	<version>5.4.1</version>
 	<name>Crux Maven Plugin</name>
 	<packaging>maven-plugin</packaging>
 
@@ -17,7 +17,7 @@
 	    <maven.version>3.0.5</maven.version>
 		<maven.plugin.version>3.4</maven.plugin.version>
 		<gwt.version>2.7.0</gwt.version>
-		<crux.version>5.4.1-SNAPSHOT</crux.version>
+		<crux.version>5.4.1</crux.version>
 	</properties>
 
 	<prerequisites>
